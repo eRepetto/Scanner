@@ -1,7 +1,7 @@
 /* File name : buffer.h
 Compiler : MS Visual Studio 2015
 Author : Exequiel Repetto
-Course : CST 8152 – Compilers, Lab Section :  14
+Course : CST 8152 â€“ Compilers, Lab Section :  14
 Assignment : 1
 Date : 2018-10-03
 Professor : Sv.Ranev
@@ -13,7 +13,7 @@ b_print(), b_compact(), b_rflag(), b_retract(), b_reset(), b_getcoffset(), b_rew
 #define BUFFER_H_
 
 
-
+/*test*/
 /*#pragma warning(1:4001) *//*to enforce C89 type comments  - to make //comments an warning */
 
 							/*#pragma warning(error:4001)*//* to enforce C89 comments - to make // comments an error */

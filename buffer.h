@@ -12,7 +12,7 @@ b_print(), b_compact(), b_rflag(), b_retract(), b_reset(), b_getcoffset(), b_rew
 #ifndef BUFFER_H_
 #define BUFFER_H_
 
-/*test*/
+
 
 /*#pragma warning(1:4001) *//*to enforce C89 type comments  - to make //comments an warning */
 

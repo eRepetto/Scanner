@@ -1,7 +1,7 @@
 /*File name: buffer.c
 Compiler: MS Visual Studio 2015
 Author: Exequiel Repetto, 040885774
-Course: CST 8152 – Compilers, Lab Section: 14
+Course: CST 8152 – Compilers, Lab Section: 11
 Assignment: 1
 Date: 2018-10-03
 Professor: Sv. Ranev
@@ -31,7 +31,11 @@ Buffer *b_allocate(short init_capacity, char inc_factor, char o_mode) {
 
 	Buffer *temp; /* pointer to buffer structure */
 
-				  /* statement will check if the init_capacity is in the acceptable range else will return null*/
+	/*if increment is negative it will return null*/
+	if (inc_factor < 0)
+		return NULL;
+
+	/* statement will check if the init_capacity is in the acceptable range else will return null*/
 	if (init_capacity >= 0 && init_capacity <= MAX_BUFF) {
 		temp = (Buffer*)calloc(1, sizeof(Buffer)); /* allocates memory for one Buffer structure*/
 		if (temp != NULL)
@@ -46,27 +50,27 @@ Buffer *b_allocate(short init_capacity, char inc_factor, char o_mode) {
 	}
 
 	/*if o_mode is equal to character "f" and inc_factor equal to 0 it will initialize mode and inc_factor members to 0*/
-	if (o_mode == 'f' || (unsigned char)inc_factor == 0) {
+	if (o_mode == 'f' || inc_factor == 0) {
 		temp->mode = 0;
 		temp->inc_factor = 0;
 	}
 
 	/*if o_mode is equal to character "f" and inc_factor is not equal to 0 it will initialize mode and inc_factor members to 0 (fixed size)*/
-	else if (o_mode == 'f' && (unsigned char)inc_factor != 0) {
+	else if (o_mode == 'f' && inc_factor != 0) {
 		temp->mode = 0;
 		temp->inc_factor = 0;
 	}
 
 	/*if o_mode is equal to  character "a" and inc_factor is on the range of 1 and 255 it assigns the mode to 1 (additive mode) and inc_factor to parameter value */
-	else if (o_mode == 'a' && (unsigned char)inc_factor >= FACTOR_1 && (unsigned char)inc_factor <= FACTOR_255) {
+	else if (o_mode == 'a' && inc_factor >= FACTOR_1 && inc_factor <= FACTOR_255) {
 		temp->mode = MODE_A;
-		temp->inc_factor = (unsigned char)inc_factor;
+		temp->inc_factor = inc_factor;
 	}
 
 	/*if o_mode is equal to character "m" and inc_factor is on the range of 1 and 100 it assigns the mode to -1 (multiplicative mode) and inc_factor to parameter value */
-	else if (o_mode == 'm' && (unsigned char)inc_factor >= FACTOR_1 && (unsigned char)inc_factor <= FACTOR_100) {
+	else if (o_mode == 'm' && inc_factor >= FACTOR_1 && inc_factor <= FACTOR_100) {
 		temp->mode = MODE_M;
-		temp->inc_factor = (unsigned char)inc_factor;
+		temp->inc_factor = inc_factor;
 	}
 
 	/* if any of the cases are not possible it will free the memory and return null*/
@@ -511,7 +515,7 @@ Buffer * b_compact(Buffer * const pBD, char symbol) {
 
 	temp = (char*)realloc(pBD->cb_head, sizeof(char*)* new_Capacity); /* reallocates new memory with new capacity*/
 
-																	  /*if memory reallocation fails it will free temp and return null*/
+																	  /*if memory reallocation fails it will return null*/
 	if (!temp) {
 		return NULL;
 	}

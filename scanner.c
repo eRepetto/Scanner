@@ -76,19 +76,82 @@ Token malar_next_token(void) {
 		short lexend;    /*end   offset of a lexeme in the input char buffer (array)*/
 		int accept = NOAS; /* type of state - initially not accepting */
 
-		DECLARE YOUR LOCAL VARIABLES HERE IF NEEDED
+	/*	DECLARE YOUR LOCAL VARIABLES HERE IF NEEDED*/
 
 			while (1) { /* endless loop broken by token returns it will generate a warning */
 
-				GET THE NEXT SYMBOL FROM THE INPUT BUFFER
+			/*	GET THE NEXT SYMBOL FROM THE INPUT BUFFER*/
 
 					c = b_getc(sc_buf);
 
+					switch (c) {
+
+					case 'SEOF':
+						t.code = SEOF_T;
+						return t;
+					
+					case ' ':
+						continue;
+
+					case '!':
+						/*gets next character again to see if is a comment line */
+						c = b_getc(sc_buf);
+						
+						if(c == '!')
+							while (c != '\0') 							
+								c = b_getc(sc_buf);
+						else {
+							while (c != '\0')
+								c = b_getc(sc_buf);
+							/*I think we need to add something else here*/
+							t.code = ERR_T;
+							return t;
+						}
+
+					case '{':
+						t.code = LBR_T;
+						return t;
+					case '}':
+						t.code = RBR_T;
+						return t;
+					case '(':
+						t.code = LPR_T;
+						return t;
+					case ')':
+						t.code = RPR_T;
+						return t;
+					case '+':
+						t.code = ART_OP_T;
+						t.attribute.arr_op = PLUS;
+						return t;
+					case '-':
+						t.code = ART_OP_T;
+						t.attribute.arr_op = MINUS;
+						return t;
+					case '/':
+						t.code = ART_OP_T;
+						t.attribute.arr_op = DIV;
+						return t;
+					case '*':
+						t.code = ART_OP_T;
+						t.attribute.arr_op = MULT;
+						return t;
+
+
+							
+
+
+
+
+
+
+
+					}
 
 				/* Part 1: Implementation of token driven scanner */
 				/* every token is possessed by its own dedicated code */
 
-				WRITE YOUR CODE FOR PROCESSING THE SPECIAL - CASE TOKENS HERE.
+				/*WRITE YOUR CODE FOR PROCESSING THE SPECIAL - CASE TOKENS HERE.
 					COMMENTS ARE PROCESSED HERE ALSO.
 
 					WHAT FOLLOWS IS A PSEUDO CODE.YOU CAN USE switch STATEMENT
@@ -106,7 +169,7 @@ Token malar_next_token(void) {
 					IN A CASE OF RUNTIME ERROR, THE FUNCTION MUST STORE
 					A NON - NEGATIVE NUMBER INTO THE GLOBAL VARIABLE scerrnum
 					AND RETURN A RUN TIME ERROR TOKEN.THE RUN TIME ERROR TOKEN ATTRIBUTE
-					MUST BE THE STRING "RUN TIME ERROR: "
+					MUST BE THE STRING "RUN TIME ERROR: "*/
 
 					IF(c == SOME CHARACTER)
 					...
@@ -176,8 +239,8 @@ Token malar_next_token(void) {
 				}
 
 
-				DO NOT MODIFY THE CODE OF THIS FUNCTION
-					YOU CAN REMOVE THE COMMENTS
+				/*DO NOT MODIFY THE CODE OF THIS FUNCTION
+					YOU CAN REMOVE THE COMMENTS*/
 
 					int get_next_state(int state, char c, int *accept)
 				{

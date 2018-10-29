@@ -566,9 +566,8 @@ short b_retract(Buffer * const pBD) {
 	/* if pBD is null it will return -1*/
 	if (pBD != NULL) {
 
-		/*it decrements getc_offset by one and if is not negative it will return the value*/
-		if (--pBD->getc_offset < !0)
-			return pBD->getc_offset;
+		/*it decrements getc_offset by one and return the value*/
+			return --pBD->getc_offset;
 	}
 
 	return RT_FAIL_1;

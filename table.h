@@ -56,8 +56,8 @@ int  st_table[][TABLE_COLUMNS] = {
 	/* State 6 */ { , , , 7,ES,5}  /* I don't know yet if we need to add something in that empty space*/
 	/* State 7 */ {ES,7,7,ES,8,8}
 	/* State 8 */ {IS,IS,IS,IS,IS,IS}
-	/* State 9 */ {} /* I don't know yet if we need to add something in that empty space*/
-	/* State 10 */{} /* I don't know yet if we need to add something in that empty space*/
+	/* State 9 */ {}  /*we need to complete this once we finish the string literal tables*/
+	/* State 10 */{}  /*we need to complete this once we finish the string literal tables*/
 	/* State 11 */{IS,IS,IS,IS,IS,IS}
 	/* State 12 */{IS,IS,IS,IS,IS,IS}
 	/* State 13 */{} /*Reserved for future use*/
@@ -85,6 +85,17 @@ Token aa_funcXX(char *lexeme);
 
 Replace XX with the number of the accepting state : 02, 03 and so on.
 
+
+Token aa_func02(char *lexeme);
+Token aa_func03(char *lexeme);
+Token aa_func05(char *lexeme);
+Token aa_func08(char *lexeme);
+Token aa_func10(char *lexeme); /* string literal?*/
+Token aa_func11(char *lexeme);
+Token aa_func12(char *lexeme);
+
+
+
 /* defining a new type: pointer to function (of one char * argument)
 returning Token
 */
@@ -97,16 +108,17 @@ typedef Token(*PTR_AAF)(char *lexeme);
 * Token (*aa_table[])(char lexeme[]) = {
 */
 
-PTR_AAF aa_table[] = {
 
 
-	HERE YOU MUST PROVIDE AN INITIALIZATION FOR AN ARRAY OF POINTERS
-	TO ACCEPTING FUNCTIONS.THE ARRAY HAS THE SAME SIZE AS as_table[].
-	YOU MUST INITIALIZE THE ARRAY ELEMENTS WITH THE CORRESPONDING
-	ACCEPTING FUNCTIONS(FOR THE STATES MARKED AS ACCEPTING IN as_table[]).
-	THE REST OF THE ELEMENTS MUST BE SET TO NULL.
+/*
 
-};
+HERE YOU MUST PROVIDE AN INITIALIZATION FOR AN ARRAY OF POINTERS
+TO ACCEPTING FUNCTIONS.THE ARRAY HAS THE SAME SIZE AS as_table[].
+YOU MUST INITIALIZE THE ARRAY ELEMENTS WITH THE CORRESPONDING
+ACCEPTING FUNCTIONS(FOR THE STATES MARKED AS ACCEPTING IN as_table[]).
+THE REST OF THE ELEMENTS MUST BE SET TO NULL.*/
+
+PTR_AAF aa_table[14] = {NULL,NULL,ASWR,ASNR,NULL,ASWR,NULL,NULL,ASWR,NULL,ASWR/*not sure about this one yet*/,ASNR,ASWR,NULL};
 
 /* Keyword lookup table (.AND. and .OR. are not keywords) */
 

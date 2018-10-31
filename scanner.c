@@ -288,8 +288,29 @@ Token malar_next_token(void) {
 
 				int char_class(char c)
 				{
-					int val;
+					int val = 0;;
+					
+					switch (c) {
+					case isalpha(c):
+						val = 0;
+						break;
+					case '0':
+						val = 1;
+						break;
+					case isdigit(c):
+						val = 2;
+						break;
+					case '.':
+						val = 3;
+						break;
+					case '$':
+						val = 4;
+						break;
+					default:
+						val = 5;						
+					}
 
+					/*
 					THIS FUNCTION RETURNS THE COLUMN NUMBER IN THE TRANSITION
 						TABLE st_table FOR THE INPUT CHARACTER c.
 						SOME COLUMNS MAY REPRESENT A CHARACTER CLASS .
@@ -297,6 +318,7 @@ Token malar_next_token(void) {
 						THE FUNCTION RETURNS 2 EVERY TIME c IS ONE
 						OF THE LETTERS A, B, ..., Z, a, b...z.
 						PAY ATTENTION THAT THE FIRST COLOMN IN THE TT IS 0 (has index 0)
+					*/
 
 						return val;
 				}

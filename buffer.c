@@ -186,7 +186,7 @@ pBuffer b_addc(pBuffer const pBD, char symbol) {
 				pBD->flags = pBD->flags | SET_R_FLAG; /* r_flag bit is set to 1*/
 				pBD->cb_head[pBD->addc_offset] = symbol; /* character symbol is appended to the buffer content*/
 				pBD->addc_offset++; /* addc_offset is incremented by one*/
-				pBD->capacity = new_Capacity; /* new capacity calculated is assigned to capacity*/
+				pBD->capacity = (short)new_Capacity; /* new capacity calculated is assigned to capacity*/
 			}
 		}
 	}
@@ -470,7 +470,7 @@ int b_print(Buffer * const pBD) {
 	/*check if buffer is empty and return -1*/
 	if (pBD->addc_offset == 0) {
 		printf("Empty buffer!\n");
-		return NULL;
+		return 0;
 	}
 	else {
 		/*loop will get character by character from buffer and print it until eob flag is 1 (end of buffer)*/

@@ -126,8 +126,7 @@ Token malar_next_token(void)
 		case ';':
 			t.code = EOS_T;
 			return t;
-
-		/* Arithmetic operators */
+			/* Operators */
 		case '+':
 			t.code = ART_OP_T;
 			t.attribute.arr_op = PLUS;
@@ -144,26 +143,33 @@ Token malar_next_token(void)
 			t.code = ART_OP_T;
 			t.attribute.arr_op = MULT;
 			return t;
-
-		/* Relational operators */
-		case '==':
-			t.code = REL_OP_T;
-			t.attribute.rel_op = EQ;
-			return t;
-		case '<>':
-			t.code = REL_OP_T;
-			t.attribute.rel_op = NE;
+		case '=':
+			c = b_getc(sc_buf);
+			if (c == '=') {
+				t.code = REL_OP_T;
+				t.attribute.rel_op = EQ;
+			}
+			/* This is not complete... error checking will be necessary here */
+			else {
+				t.code = ASS_OP_T;
+			}
 			return t;
 		case '<':
-			t.code = REL_OP_T;
-			t.attribute.rel_op = LT;
+			c = b_getc(sc_buf);
+			if (c == '>') {
+				t.code = REL_OP_T;
+				t.attribute.rel_op = NE;
+			}
+			/* Same as above, will need to do error checking here */
+			else {
+				t.code = REL_OP_T;
+				t.attribute.rel_op = LT;
+			}
 			return t;
 		case '>':
 			t.code = REL_OP_T;
 			t.attribute.rel_op = GT;
 			return t;
-
-		/* Logical operators */
 		case '.':
 			/* There is definitely a better way of writing this...feel free to modify */
 			c = b_getc(sc_buf);
@@ -196,9 +202,6 @@ Token malar_next_token(void)
 			return t;
 		case '#':
 			t.code = SCC_OP_T;
-			return t;
-		case '=':
-			t.code = ASS_OP_T;
 			return t;
 		}
 

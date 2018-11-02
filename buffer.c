@@ -31,7 +31,7 @@ Buffer *b_allocate(short init_capacity, char inc_factor, char o_mode) {
 
 	Buffer *temp; /* pointer to buffer structure */
 
-	/*if increment is negative it will return null*/
+				  /*if increment is negative it will return null*/
 	if (inc_factor < 0)
 		return NULL;
 
@@ -567,7 +567,7 @@ short b_retract(Buffer * const pBD) {
 	if (pBD != NULL) {
 
 		/*it decrements getc_offset by one and return the value*/
-			return --pBD->getc_offset;
+		return --pBD->getc_offset;
 	}
 
 	return RT_FAIL_1;

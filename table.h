@@ -49,20 +49,20 @@
 #define TABLE_COLUMNS 7
 /*transition table - type of states defined in separate table */
 int  st_table[][TABLE_COLUMNS] = {
-	/* State 0 */ { 1,6,4,ES,ES,ES},
-	/* State 1 */ { 1,1,1,ES,3,2 },
-	/* State 2 */ {IS,IS,IS,IS,IS,IS},
-	/* State 3 */ {IS,IS,IS,IS,IS,IS},
-	/* State 4 */ {ES,4,4,7,5,5},
-	/* State 5 */ {IS,IS,IS,IS,IS,IS},
-	/* State 6 */ {IS,IS,IS,7,ES,5},  /* I don't know yet if we need to add something in that empty space*/ /* I added IS to complete the table and be able to run the program*/
-	/* State 7 */ {ES,7,7,ES,8,8},
-	/* State 8 */ {IS,IS,IS,IS,IS,IS},
-	/* State 9 */ {IS,IS,IS,IS,IS,IS}, /*we need to complete this once we finish the string literal tables*/ /*I added IS to complete the table and be able to run the program* /
-	/* State 10 */ {IS,IS,IS,IS,IS,IS},  /*we need to complete this once we finish the string literal tables*/ /*I added IS to complete the table and be able to run the program* /
-	/* State 11 */ {IS,IS,IS,IS,IS,IS},
-	/* State 12 */ {IS,IS,IS,IS,IS,IS},
-	/* State 13 */ {IS,IS,IS,IS,IS,IS} /*Reserved for future use*/ /*I added IS to complete the table and be able to run the program*/
+	/* State 0 */{ 1,6,4,ES,ES,ES },
+	/* State 1 */{ 1,1,1,ES,3,2 },
+	/* State 2 */{ IS,IS,IS,IS,IS,IS },
+	/* State 3 */{ IS,IS,IS,IS,IS,IS },
+	/* State 4 */{ ES,4,4,7,5,5 },
+	/* State 5 */{ IS,IS,IS,IS,IS,IS },
+	/* State 6 */{ IS,IS,IS,7,ES,5 },  /* I don't know yet if we need to add something in that empty space*/ /* I added IS to complete the table and be able to run the program*/
+	/* State 7 */{ ES,7,7,ES,8,8 },
+	/* State 8 */{ IS,IS,IS,IS,IS,IS },
+	/* State 9 */{ IS,IS,IS,IS,IS,IS }, /*we need to complete this once we finish the string literal tables*/ /*I added IS to complete the table and be able to run the program* /
+																											  /* State 10 */{ IS,IS,IS,IS,IS,IS },  /*we need to complete this once we finish the string literal tables*/ /*I added IS to complete the table and be able to run the program* /
+																											  /* State 11 */{ IS,IS,IS,IS,IS,IS },
+	/* State 12 */{ IS,IS,IS,IS,IS,IS },
+	/* State 13 */{ IS,IS,IS,IS,IS,IS } /*Reserved for future use*/ /*I added IS to complete the table and be able to run the program*/
 
 };
 /*.YOUR TABLE INITIALIZATION HERE*/
@@ -76,8 +76,8 @@ int  st_table[][TABLE_COLUMNS] = {
 #define NOAS     13  /* not accepting state */
 
 
-	/*I put ASWR for state number 10, I don't know if is that what we need to use, I just put it for testing purpose*/
-int as_table[] = { NOAS,NOAS,ASWR,ASNR,NOAS,ASWR,NOAS,NOAS,ASWR,NOAS,ASWR,ASNR,ASWR};
+/*I put ASWR for state number 10, I don't know if is that what we need to use, I just put it for testing purpose*/
+int as_table[] = { NOAS,NOAS,ASWR,ASNR,NOAS,ASWR,NOAS,NOAS,ASWR,NOAS,ASWR,ASNR,ASWR };
 
 /* Accepting action function declarations */
 
@@ -123,8 +123,8 @@ ACCEPTING FUNCTIONS(FOR THE STATES MARKED AS ACCEPTING IN as_table[]).
 THE REST OF THE ELEMENTS MUST BE SET TO NULL.*/
 
 PTR_AAF aa_table[] = { NULL,NULL,aa_func02, aa_func03,NULL,
-						aa_func05,NULL,NULL,aa_func08,NULL,
-						aa_func10,aa_func11,aa_func12,NULL};
+aa_func05,NULL,NULL,aa_func08,NULL,
+aa_func10,aa_func11,aa_func12,NULL };
 
 /* Keyword lookup table (.AND. and .OR. are not keywords) */
 

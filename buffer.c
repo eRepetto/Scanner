@@ -31,7 +31,7 @@ Buffer *b_allocate(short init_capacity, char inc_factor, char o_mode) {
 
 	Buffer *temp; /* pointer to buffer structure */
 
-				  /*if increment is negative it will return null*/
+	/*if increment is negative it will return null*/
 	if (inc_factor < 0)
 		return NULL;
 
@@ -297,9 +297,9 @@ Algorithm:
 */
 short b_mark(pBuffer const pBD, short mark) {
 
-	/* if pBD is not null it will return the markc_offcet else it will return -1*/
+	/* if pBD is not null it will return the markc_offset else it will return -1*/
 	if (pBD != NULL) {
-		/* if mark is on the range of 0 and addc_offcet it will be assign to markc_offcet*/
+		/* if mark is on the range of 0 and addc_offcet it will be assign to markc_offset*/
 		if (mark >= 0 && mark <= pBD->addc_offset) {
 			pBD->markc_offset = mark;
 			return pBD->markc_offset;
@@ -573,7 +573,7 @@ short b_retract(Buffer * const pBD) {
 	return RT_FAIL_1;
 }
 /*
-Purpose: the purpose of the function is to set getc_offset to the value of the current marc_offset
+Purpose: the purpose of the function is to set getc_offset to the value of the current mark_offset
 Author: Exequiel Repetto
 History/Versions: 1.0
 Called functions: none

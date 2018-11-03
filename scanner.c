@@ -78,11 +78,11 @@ Token malar_next_token(void)
 	int accept = NOAS; /* type of state - initially not accepting */
 	int temp = 0; /*used to store temporary integers*/
 
-/*	DECLARE YOUR LOCAL VARIABLES HERE IF NEEDED*/
+				  /*	DECLARE YOUR LOCAL VARIABLES HERE IF NEEDED*/
 
 	while (1) { /* endless loop broken by token returns it will generate a warning */
 
-	/*	GET THE NEXT SYMBOL FROM THE INPUT BUFFER*/
+				/*	GET THE NEXT SYMBOL FROM THE INPUT BUFFER*/
 
 		c = b_getc(sc_buf);
 
@@ -238,87 +238,87 @@ Token malar_next_token(void)
 		/* every token is possessed by its own dedicated code */
 
 		/*WRITE YOUR CODE FOR PROCESSING THE SPECIAL - CASE TOKENS HERE.
-			COMMENTS ARE PROCESSED HERE ALSO.
+		COMMENTS ARE PROCESSED HERE ALSO.
 
-			WHAT FOLLOWS IS A PSEUDO CODE.YOU CAN USE switch STATEMENT
-			INSTEAD OF if - else TO PROCESS THE SPECIAL CASES
-			DO NOT FORGET TO COUNT THE PROGRAM LINES
+		WHAT FOLLOWS IS A PSEUDO CODE.YOU CAN USE switch STATEMENT
+		INSTEAD OF if - else TO PROCESS THE SPECIAL CASES
+		DO NOT FORGET TO COUNT THE PROGRAM LINES
 
-			NOTE :
+		NOTE :
 		IF LEXICAL ERROR OR ILLEGAL CHARACTER ARE FOUND THE SCANNER MUST RETURN AN ERROR TOKEN.
-			ILLEGAL CHARACTER IS ONE THAT IS NOT DEFINED IN THE LANGUAGE SPECIFICATION
-			OR IT IS OUT OF CONTEXT.
-			THE ILLEGAL CHAR IS THE ATTRIBUTE OF THE ERROR TOKEN
-			THE ILLEGAL CHARACTERS ARE PROCESSED BY THE TRANSITION TABLE.
-			SOME OF THE LEXICAL ERRORS ARE ALSO PROCESSED BY THE TRANSITION TABLE.
+		ILLEGAL CHARACTER IS ONE THAT IS NOT DEFINED IN THE LANGUAGE SPECIFICATION
+		OR IT IS OUT OF CONTEXT.
+		THE ILLEGAL CHAR IS THE ATTRIBUTE OF THE ERROR TOKEN
+		THE ILLEGAL CHARACTERS ARE PROCESSED BY THE TRANSITION TABLE.
+		SOME OF THE LEXICAL ERRORS ARE ALSO PROCESSED BY THE TRANSITION TABLE.
 
-			IN A CASE OF RUNTIME ERROR, THE FUNCTION MUST STORE
-			A NON - NEGATIVE NUMBER INTO THE GLOBAL VARIABLE scerrnum
-			AND RETURN A RUN TIME ERROR TOKEN.THE RUN TIME ERROR TOKEN ATTRIBUTE
-			MUST BE THE STRING "RUN TIME ERROR: "*/
+		IN A CASE OF RUNTIME ERROR, THE FUNCTION MUST STORE
+		A NON - NEGATIVE NUMBER INTO THE GLOBAL VARIABLE scerrnum
+		AND RETURN A RUN TIME ERROR TOKEN.THE RUN TIME ERROR TOKEN ATTRIBUTE
+		MUST BE THE STRING "RUN TIME ERROR: "*/
 
-			/*	IF(c == SOME CHARACTER)
-					...
-					SKIP CHARACTER(FOR EXAMPLE SPACE)
-					continue;
-				OR SET TOKEN(SET TOKEN CODE AND TOKEN ATTRIBUTE(IF AVAILABLE))
-					return t;
-			EXAMPLE:
-				if (c == ' ') continue;
-				if (c == '{') {
-					t.code = RBR_T; no attribute  return t;
-					if (c == '+') {
-						t.code = ART_OP_T; t.attribute.arr_op = PLUS * / return t;
-						...
+		/*	IF(c == SOME CHARACTER)
+		...
+		SKIP CHARACTER(FOR EXAMPLE SPACE)
+		continue;
+		OR SET TOKEN(SET TOKEN CODE AND TOKEN ATTRIBUTE(IF AVAILABLE))
+		return t;
+		EXAMPLE:
+		if (c == ' ') continue;
+		if (c == '{') {
+		t.code = RBR_T; no attribute  return t;
+		if (c == '+') {
+		t.code = ART_OP_T; t.attribute.arr_op = PLUS * / return t;
+		...
 
-							IF(c == '.') TRY TO PROCESS.AND. or .OR.
-							IF SOMETHING ELSE FOLLOWS.OR THE LAST.IS MISSING
-							RETURN AN ERROR TOKEN
-							IF(c == '!') TRY TO PROCESS COMMENT
-							IF THE FOLLOWING CHAR IS NOT !REPORT AN ERROR
-							ELSE IN A LOOP SKIP CHARACTERS UNTIL line terminator is found THEN continue;
-						...
+		IF(c == '.') TRY TO PROCESS.AND. or .OR.
+		IF SOMETHING ELSE FOLLOWS.OR THE LAST.IS MISSING
+		RETURN AN ERROR TOKEN
+		IF(c == '!') TRY TO PROCESS COMMENT
+		IF THE FOLLOWING CHAR IS NOT !REPORT AN ERROR
+		ELSE IN A LOOP SKIP CHARACTERS UNTIL line terminator is found THEN continue;
+		...
 
-							IF(c == ANOTHER CHARACTER)
-							SET TOKEN
-							return t;*/
-
-
-							/* Part 2: Implementation of Finite State Machine (DFA)
-							or Transition Table driven Scanner
-							Note: Part 2 must follow Part 1 to catch the illegal symbols
-							*/
-
-							/*SET THE MARK AT THE BEGINING OF THE LEXEME AND SAVE IT IN lexstart
-								lexstart = b_mark(sc_buf, ...);
-							....
-								CODE YOUR FINATE STATE MACHINE HERE(FSM or DFA)
-								IT IMPLEMENTS THE FOLLOWING ALGORITHM :
-
-							FSM0.Begin with state = 0 and the input character c
-								FSM1.Get the next state from the transition table calling
-								state = get_next_state(state, c, &accept);
-							FSM2.Get the next character
-								FSM3.If the state is not accepting(accept == NOAS), go to step FSM1
-								If the step is accepting, token is found, leave the machine and
-								call an accepting function as described below.
+		IF(c == ANOTHER CHARACTER)
+		SET TOKEN
+		return t;*/
 
 
-								RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
+		/* Part 2: Implementation of Finite State Machine (DFA)
+		or Transition Table driven Scanner
+		Note: Part 2 must follow Part 1 to catch the illegal symbols
+		*/
 
-								SET lexend TO getc_offset USING AN APPROPRIATE BUFFER FUNCTION
+		/*SET THE MARK AT THE BEGINING OF THE LEXEME AND SAVE IT IN lexstart
+		lexstart = b_mark(sc_buf, ...);
+		....
+		CODE YOUR FINATE STATE MACHINE HERE(FSM or DFA)
+		IT IMPLEMENTS THE FOLLOWING ALGORITHM :
 
-								CREATE  A TEMPORRARY LEXEME BUFFER HERE;
-							lex_buf = b_allocate(...);
-							.RETRACT getc_offset to the MARK SET PREVIOUSLY AT THE BEGINNING OF THE LEXEME AND
-								.USING b_getc() COPY THE LEXEME BETWEEN lexstart AND lexend FROM THE INPUT BUFFER INTO lex_buf USING b_addc(...),
-								.WHEN VID(KEYWORDS INCLUDED), FPL OR IL IS RECOGNIZED
-								.YOU MUST CALL THE ACCEPTING FUNCTION USING THE ARRAY aa_table, WHICH
-								.CONTAINS POINTERS TO FUNCTIONS.THE ARRAY INDEX OF THE FUNCTION TO BE
-								.CALLED IS STORED IN THE VARIABLE state.
-								.YOU ARE NOT ALLOWED TO CALL ANY OF THE ACCEPTING FUNCTIONS BY NAME.
-								.THE ARGUMENT TO THE FUNCTION IS THE STRING STORED IN lex_buf.
-								....*/
+		FSM0.Begin with state = 0 and the input character c
+		FSM1.Get the next state from the transition table calling
+		state = get_next_state(state, c, &accept);
+		FSM2.Get the next character
+		FSM3.If the state is not accepting(accept == NOAS), go to step FSM1
+		If the step is accepting, token is found, leave the machine and
+		call an accepting function as described below.
+
+
+		RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
+
+		SET lexend TO getc_offset USING AN APPROPRIATE BUFFER FUNCTION
+
+		CREATE  A TEMPORRARY LEXEME BUFFER HERE;
+		lex_buf = b_allocate(...);
+		.RETRACT getc_offset to the MARK SET PREVIOUSLY AT THE BEGINNING OF THE LEXEME AND
+		.USING b_getc() COPY THE LEXEME BETWEEN lexstart AND lexend FROM THE INPUT BUFFER INTO lex_buf USING b_addc(...),
+		.WHEN VID(KEYWORDS INCLUDED), FPL OR IL IS RECOGNIZED
+		.YOU MUST CALL THE ACCEPTING FUNCTION USING THE ARRAY aa_table, WHICH
+		.CONTAINS POINTERS TO FUNCTIONS.THE ARRAY INDEX OF THE FUNCTION TO BE
+		.CALLED IS STORED IN THE VARIABLE state.
+		.YOU ARE NOT ALLOWED TO CALL ANY OF THE ACCEPTING FUNCTIONS BY NAME.
+		.THE ARGUMENT TO THE FUNCTION IS THE STRING STORED IN lex_buf.
+		....*/
 
 
 		b_free(lex_buf);
@@ -331,7 +331,7 @@ Token malar_next_token(void)
 
 
 /*DO NOT MODIFY THE CODE OF THIS FUNCTION
-	YOU CAN REMOVE THE COMMENTS*/
+YOU CAN REMOVE THE COMMENTS*/
 
 int get_next_state(int state, char c, int *accept)
 {
@@ -391,31 +391,33 @@ int char_class(char c)
 	*/
 
 
-	int val;
+	int column;
 
 	if (isalpha(c))
-		val = 0;
+		column = 0;
 	else if (c == '0')
-		val = 1;
+		column = 1;
 	else if (isdigit(c))
-		val = 2;
+		column = 2;
 	else if (c == '.')
-		val = 3;
+		column = 3;
 	else if (c == '&')
-		val = 4;
+		column = 4;
+	else if (c == '\"')
+		column = 5;
 	else
-		val = 5;
+		column = 6;
 
-	return val;
+	return column;
 }
 
 
 
 /*	HERE YOU WRITE THE DEFINITIONS FOR YOUR ACCEPTING FUNCTIONS.
-		************************************************************
+************************************************************
 
-		ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
-		REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
+ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
+REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
 
 Token aa_func02(char lexeme[]) {
 
@@ -463,19 +465,19 @@ Token aa_func02(char lexeme[]) {
 }
 
 /*ACCEPTING FUNCTION FOR THE string variable identifier(VID - SVID)
-	REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
+REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
 
 Token aa_func03(char lexeme[]) {
 
 	/*	WHEN CALLED THE FUNCTION MUST
-			1. SET a SVID TOKEN.
-			IF THE lexeme IS LONGER than VID_LEN characters,
-			ONLY FIRST VID_LEN - 1 CHARACTERS ARE STORED
-			INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[],
-			AND THEN THE $ CHARACTER IS APPENDED TO THE NAME.
-			ADD \0 AT THE END TO MAKE A C - type STRING.
+	1. SET a SVID TOKEN.
+	IF THE lexeme IS LONGER than VID_LEN characters,
+	ONLY FIRST VID_LEN - 1 CHARACTERS ARE STORED
+	INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[],
+	AND THEN THE $ CHARACTER IS APPENDED TO THE NAME.
+	ADD \0 AT THE END TO MAKE A C - type STRING.
 
-			return t;*/
+	return t;*/
 }
 
 /*ACCEPTING FUNCTION FOR THE floating - point literal (FPL)*/
@@ -514,15 +516,15 @@ Token aa_func05(char lexeme[]) {
 	return t;
 
 	/*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT
-		TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
-		THE VALUE MUST BE IN THE SAME RANGE AS the value of 2 - byte integer in C.
-		IN CASE OF ERROR(OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
-		THE ERROR TOKEN ATTRIBUTE IS  lexeme.IF THE ERROR lexeme IS LONGER
-		than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
-		STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
-		err_lex C - type string.
-		BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
-		return t;*/
+	TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
+	THE VALUE MUST BE IN THE SAME RANGE AS the value of 2 - byte integer in C.
+	IN CASE OF ERROR(OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
+	THE ERROR TOKEN ATTRIBUTE IS  lexeme.IF THE ERROR lexeme IS LONGER
+	than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
+	STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
+	err_lex C - type string.
+	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
+	return t;*/
 }
 
 /*ACCEPTING FUNCTION FOR THE string literal(SL)*/
@@ -530,16 +532,16 @@ Token aa_func05(char lexeme[]) {
 Token aa_func10(char lexeme[]) {
 
 	/*THE FUNCTION MUST STORE THE lexeme PARAMETER CONTENT INTO THE STRING LITERAL TABLE(str_LTBL)
-		FIRST THE ATTRIBUTE FOR THE TOKEN MUST BE SET.
-		THE ATTRIBUTE OF THE STRING TOKEN IS THE OFFSET FROM
-		THE BEGINNING OF THE str_LTBL char buffer TO THE LOCATION
-		WHERE THE FIRST CHAR OF THE lexeme CONTENT WILL BE ADDED TO THE BUFFER.
-		USING b_addc(..)COPY THE lexeme content INTO str_LTBL.
-		THE OPENING AND CLOSING " MUST BE IGNORED DURING THE COPING PROCESS.
-		ADD '\0' AT THE END MAKE THE STRING C - type string
-		IF THE STING lexeme CONTAINS line terminators THE line COUNTER MUST BE INCTREMENTED.
-		SET THE STRING TOKEN CODE.
-		return t;*/
+	FIRST THE ATTRIBUTE FOR THE TOKEN MUST BE SET.
+	THE ATTRIBUTE OF THE STRING TOKEN IS THE OFFSET FROM
+	THE BEGINNING OF THE str_LTBL char buffer TO THE LOCATION
+	WHERE THE FIRST CHAR OF THE lexeme CONTENT WILL BE ADDED TO THE BUFFER.
+	USING b_addc(..)COPY THE lexeme content INTO str_LTBL.
+	THE OPENING AND CLOSING " MUST BE IGNORED DURING THE COPING PROCESS.
+	ADD '\0' AT THE END MAKE THE STRING C - type string
+	IF THE STING lexeme CONTAINS line terminators THE line COUNTER MUST BE INCTREMENTED.
+	SET THE STRING TOKEN CODE.
+	return t;*/
 }
 
 /*	ACCEPTING FUNCTION FOR THE ERROR TOKEN*/
@@ -547,14 +549,14 @@ Token aa_func10(char lexeme[]) {
 Token aa_func12(char lexeme[]) {
 
 	/*THE FUNCTION SETS THE ERROR TOKEN.lexeme[] CONTAINS THE ERROR
-		THE ATTRIBUTE OF THE ERROR TOKEN IS THE lexeme CONTENT ITSELF
-		AND IT MUST BE STORED in err_lex.IF THE ERROR lexeme IS LONGER
-		than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
-		STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
-		err_lex C - type string.
-		IF THE ERROR lexeme CONTAINS line terminators THE line COUNTER MUST BE INCTREMENTED.
-		BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
-		return t;*/
+	THE ATTRIBUTE OF THE ERROR TOKEN IS THE lexeme CONTENT ITSELF
+	AND IT MUST BE STORED in err_lex.IF THE ERROR lexeme IS LONGER
+	than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
+	STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
+	err_lex C - type string.
+	IF THE ERROR lexeme CONTAINS line terminators THE line COUNTER MUST BE INCTREMENTED.
+	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
+	return t;*/
 }
 
 /*should we add function 11 as well? not sure about it yet*/
@@ -562,7 +564,7 @@ Token aa_func12(char lexeme[]) {
 
 
 /*HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS(IF ANY).
-	FOR EXAMPLE*/
+FOR EXAMPLE*/
 
 
 

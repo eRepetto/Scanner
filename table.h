@@ -60,7 +60,7 @@ int  st_table[][TABLE_COLUMNS] = {
 	/* State 7 */ {ES, 7, 7, ES, 8, ES, 8},
 	/* State 8 */ {IS, IS, IS, IS, IS, IS, IS},
 	/* State 9 */ {9, 9, 9, 9, 9, 10, 9}, 
-	/* State 10 */{IS, IS, IS, IS, IS, IS}, /*I added IS to complete the table and be able to run the program* /
+	/* State 10 */{IS, IS, IS, IS, IS, IS}, 
 	/* State 11 */{IS, IS, IS, IS, IS, IS},
 	/* State 12 */{IS, IS, IS, IS, IS, IS},
 	/* State 13 */{IS, IS, IS, IS, IS, IS} /*Reserved for future use*/ /*I added IS to complete the table and be able to run the program*/

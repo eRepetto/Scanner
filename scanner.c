@@ -419,6 +419,9 @@ int char_class(char c)
 ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
 REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
 
+/*
+* Author: Exequiel Repetto
+*/
 Token aa_func02(char lexeme[]) {
 
 	/*WHEN CALLED THE FUNCTION MUST
@@ -464,24 +467,34 @@ Token aa_func02(char lexeme[]) {
 	return t;
 }
 
-/*ACCEPTING FUNCTION FOR THE string variable identifier(VID - SVID)
-REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
+/* ACCEPTING FUNCTION FOR THE string variable identifier(VID - SVID) */
 
+/*
+* Author: Gabriel Richard
+*/
 Token aa_func03(char lexeme[]) {
+	Token t;
+	t.code = SVID_T;
 
-	/*	WHEN CALLED THE FUNCTION MUST
-	1. SET a SVID TOKEN.
-	IF THE lexeme IS LONGER than VID_LEN characters,
-	ONLY FIRST VID_LEN - 1 CHARACTERS ARE STORED
-	INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[],
-	AND THEN THE $ CHARACTER IS APPENDED TO THE NAME.
-	ADD \0 AT THE END TO MAKE A C - type STRING.
+	/* Only first vid_len - 1 characters are stored, followed by '$' and '\0' */
+	for (int i = 0; i < VID_LEN; ++i) {
+		if (i == VID_LEN - 1) {
+			t.attribute.vid_lex[i] = '$';
+			t.attribute.vid_lex[i + 1] = '\0';
+		}
+		else {
+			t.attribute.vid_lex[i] = lexeme[i];
+		}
+	}
 
-	return t;*/
+	return t;
 }
 
 /*ACCEPTING FUNCTION FOR THE floating - point literal (FPL)*/
 
+/*
+* Author: Exequiel Repetto
+*/
 Token aa_func08(char lexeme[]) {
 
 	Token t;
@@ -507,6 +520,9 @@ Token aa_func08(char lexeme[]) {
 
 /*	ACCEPTING FUNCTION FOR THE integer literal(IL)-decimal constant(DIL)*/
 
+/*
+* Author: Exequiel Repetto
+*/
 Token aa_func05(char lexeme[]) {
 
 	Token t;
@@ -529,38 +545,62 @@ Token aa_func05(char lexeme[]) {
 
 /*ACCEPTING FUNCTION FOR THE string literal(SL)*/
 
+/*
+* Author: Gabriel Richard
+*/
 Token aa_func10(char lexeme[]) {
+	Token t;
+	t.attribute.str_offset = str_LTBL->cb_head;
 
-	/*THE FUNCTION MUST STORE THE lexeme PARAMETER CONTENT INTO THE STRING LITERAL TABLE(str_LTBL)
-	FIRST THE ATTRIBUTE FOR THE TOKEN MUST BE SET.
-	THE ATTRIBUTE OF THE STRING TOKEN IS THE OFFSET FROM
-	THE BEGINNING OF THE str_LTBL char buffer TO THE LOCATION
-	WHERE THE FIRST CHAR OF THE lexeme CONTENT WILL BE ADDED TO THE BUFFER.
-	USING b_addc(..)COPY THE lexeme content INTO str_LTBL.
-	THE OPENING AND CLOSING " MUST BE IGNORED DURING THE COPING PROCESS.
-	ADD '\0' AT THE END MAKE THE STRING C - type string
-	IF THE STING lexeme CONTAINS line terminators THE line COUNTER MUST BE INCTREMENTED.
-	SET THE STRING TOKEN CODE.
-	return t;*/
+	/* Add characters inside quotation marks to string literal table */
+	for (int i = 1; i < strlen(lexeme) - 1; ++i) {
+		if (lexeme[i] == '\n') {
+			++line;
+		}
+		/* Attempt to insert characters into string literal table */
+		if (b_addc(str_LTBL, lexeme[i]) == NULL) {
+			break;
+		}
+	}
+	b_addc(str_LTBL, '\0');
+	t.code = STR_T;
+
+	return t;
 }
 
 /*	ACCEPTING FUNCTION FOR THE ERROR TOKEN*/
 
+/*
+* Author: Gabriel Richard
+*/
 Token aa_func12(char lexeme[]) {
+	Token t;
 
-	/*THE FUNCTION SETS THE ERROR TOKEN.lexeme[] CONTAINS THE ERROR
-	THE ATTRIBUTE OF THE ERROR TOKEN IS THE lexeme CONTENT ITSELF
-	AND IT MUST BE STORED in err_lex.IF THE ERROR lexeme IS LONGER
-	than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
-	STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
-	err_lex C - type string.
-	IF THE ERROR lexeme CONTAINS line terminators THE line COUNTER MUST BE INCTREMENTED.
-	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
-	return t;*/
+	/* Strings longer than 20 characters shall only show the first 17 characters
+	and append three dots (...) to the end */
+	if (strlen(lexeme) > ERR_LEN) {
+		for (int i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
+			if (lexeme[i] == '\n') {
+				++line;
+			}
+			if (i == ERR_LEN || i == strlen(lexeme)) {
+				/* Not sure if this is needed, but the description says c-style stying so I put it in for now */
+				t.attribute.err_lex[i] = '\0';
+			}
+			else if (i >= ERR_LEN - 4) {
+				t.attribute.err_lex[i] = '.';
+			}
+			else {
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+		}
+	}
+
+	t.code = ERR_T;
+	return t;
 }
 
 /*should we add function 11 as well? not sure about it yet*/
-
 
 
 /*HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS(IF ANY).

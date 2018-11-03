@@ -109,9 +109,11 @@ Token malar_next_token(void)
 				continue;
 			}
 			else {
+				t.attribute.err_lex[0] = '!';
+				t.attribute.err_lex[1] = c;
 				while (c != '\n')
 					c = b_getc(sc_buf);
-				/*I think we need to add something else here*/
+				line++;
 				t.code = ERR_T;
 				return t;
 			}
@@ -151,18 +153,15 @@ Token malar_next_token(void)
 			t.code = ART_OP_T;
 			t.attribute.arr_op = MULT;
 			return t;
-			/* Relational operators */
-		case '==':
-			t.code = REL_OP_T;
-			t.attribute.rel_op = EQ;
-			return t;
-		case '<>':
-			t.code = REL_OP_T;
-			t.attribute.rel_op = NE;
-			return t;
 		case '<':
+			c = b_getc(sc_buf);
+			if (c == '>')
+				t.attribute.rel_op = NE;
+			else {
+				b_retract(sc_buf);
+				t.attribute.rel_op = LT;
+			}
 			t.code = REL_OP_T;
-			t.attribute.rel_op = LT;
 			return t;
 		case '>':
 			t.code = REL_OP_T;
@@ -172,11 +171,16 @@ Token malar_next_token(void)
 			t.code = SCC_OP_T;
 			return t;
 		case '=':
-			t.code = ASS_OP_T;
+			c = b_getc(sc_buf);
+			if (c == '=') {
+				t.code = REL_OP_T;
+				t.attribute.rel_op = EQ;
+			}
+			else {
+				b_retract(sc_buf);
+				t.code = ASS_OP_T;
+			}
 			return t;
-
-
-
 
 			/* Logical operators */
 		case '.':
@@ -189,12 +193,46 @@ Token malar_next_token(void)
 				else if (temp == 2)
 					t.attribute.log_op = OR;
 
-				t.code = ART_OP_T;
+				t.code = LOG_OP_T;
 				return t;
 
 			}
+		}
+
+		/* Part 2: Implementation of Finite State Machine (DFA)*/
+		if (isalpha(c) || isdigit(c)) {
+
+			lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
+			int capacity;
+
+			while (accept == NOAS) {
+				state = get_next_state(state, c, &accept);
+
+				if (accept == ASWR || accept == ASNR)
+					break;
+				c = b_getc(sc_buf);
+			}
+			if (state == ASWR)
+				b_retract(sc_buf);
+
+			lexend = b_getcoffset(sc_buf);
+			capacity = lexend - lexstart;
+
+			lex_buf = b_allocate(capacity, 0, 'f');
+
+			/*retract getc_offset to the mark set previously*/
+			b_reset(sc_buf);
+
+			for (int i = 1; i < capacity; i++) {
+				c = b_getc(sc_buf);
+				b_addc(lex_buf, c);
+			}
+
+			b_addc(lex_buf, '\0');
+			t = aa_table[state](b_location(lex_buf, 0));
 
 		}
+
 
 		/* Part 1: Implementation of token driven scanner */
 		/* every token is possessed by its own dedicated code */
@@ -381,6 +419,20 @@ int char_class(char c)
 
 Token aa_func02(char lexeme[]) {
 
+	/*WHEN CALLED THE FUNCTION MUST
+	1. CHECK IF THE LEXEME IS A KEYWORD.
+	IF YES, IT MUST RETURN A TOKEN WITH THE CORRESPONDING ATTRIBUTE
+	FOR THE KEYWORD.THE ATTRIBUTE CODE FOR THE KEYWORD
+	IS ITS INDEX IN THE KEYWORD LOOKUP TABLE(kw_table in table.h).
+	IF THE LEXEME IS NOT A KEYWORD, GO TO STEP 2.
+
+	2. SET a AVID TOKEN.
+	IF THE lexeme IS LONGER than VID_LEN(see token.h) CHARACTERS,
+	ONLY FIRST VID_LEN CHARACTERS ARE STORED
+	INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[](see token.h) .
+	ADD \0 AT THE END TO MAKE A C - type STRING.
+	return t;*/
+
 	Token t;
 
 	int temp = iskeyword(lexeme);
@@ -388,26 +440,26 @@ Token aa_func02(char lexeme[]) {
 	if (temp != -1) {
 		t.code = KW_T;
 		t.attribute.kwt_idx = temp;
+		/*return t;*/
 	}
-	else {}
+	else if ((strlen(lexeme) > VID_LEN)) {
+		t.code = AVID_T;
 
-
-	/*WHEN CALLED THE FUNCTION MUST
-		1. CHECK IF THE LEXEME IS A KEYWORD.
-		IF YES, IT MUST RETURN A TOKEN WITH THE CORRESPONDING ATTRIBUTE
-		FOR THE KEYWORD.THE ATTRIBUTE CODE FOR THE KEYWORD
-		IS ITS INDEX IN THE KEYWORD LOOKUP TABLE(kw_table in table.h).
-		IF THE LEXEME IS NOT A KEYWORD, GO TO STEP 2.
-
-		2. SET a AVID TOKEN.
-		IF THE lexeme IS LONGER than VID_LEN(see token.h) CHARACTERS,
-		ONLY FIRST VID_LEN CHARACTERS ARE STORED
-		INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[](see token.h) .
-		ADD \0 AT THE END TO MAKE A C - type STRING.
-		return t;*/
-
+		for (int i = 0; i < VID_LEN; i++) {
+			t.attribute.vid_lex[i] = lexeme[i];
+			if (i + 1 == VID_LEN)
+				t.attribute.vid_lex[i + 1] = '\0';
+		}
+	}
+	else {
+		t.code = AVID_T;
+		for (int i = 0; i < (strlen(lexeme)); i++) {
+			t.attribute.vid_lex[i] = lexeme[i];
+			if (i + 1 == (strlen(lexeme)))
+				t.attribute.vid_lex[i + 1] = '\0';
+		}
+	}
 	return t;
-
 }
 
 /*ACCEPTING FUNCTION FOR THE string variable identifier(VID - SVID)
@@ -430,21 +482,36 @@ Token aa_func03(char lexeme[]) {
 
 Token aa_func08(char lexeme[]) {
 
+	Token t;
+
 	/*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
-		WHICH IS THE ATTRIBUTE FOR THE TOKEN.
-		THE VALUE MUST BE IN THE SAME RANGE AS the value of 4 - byte float in C.
-		IN CASE OF ERROR(OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
-		THE ERROR TOKEN ATTRIBUTE IS  lexeme.IF THE ERROR lexeme IS LONGER
-		than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
-		STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
-		err_lex C - type string.
-		BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
-		return t;*/
+	WHICH IS THE ATTRIBUTE FOR THE TOKEN.
+	THE VALUE MUST BE IN THE SAME RANGE AS the value of 4 - byte float in C.
+	IN CASE OF ERROR(OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
+	THE ERROR TOKEN ATTRIBUTE IS  lexeme.IF THE ERROR lexeme IS LONGER
+	than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
+	STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
+	err_lex C - type string.
+	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
+	return t;*/
+
+	float num = atof(lexeme);
+	t.code = FPL_T;
+	t.attribute.flt_value = num;
+
+	return t;
+
 }
 
 /*	ACCEPTING FUNCTION FOR THE integer literal(IL)-decimal constant(DIL)*/
 
 Token aa_func05(char lexeme[]) {
+
+	Token t;
+	long num = atol(lexeme);
+	t.code = INL_T;
+	t.attribute.int_value = num;
+	return t;
 
 	/*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT
 		TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
@@ -502,6 +569,8 @@ Token aa_func12(char lexeme[]) {
 
 int iskeyword(char * kw_lexeme) {
 
+	/*printf("%s", kw_lexeme);*/
+
 	for (int i = 0; i < KWT_SIZE; i++) {
 		if (strcmp(kw_lexeme, kw_table[i]) == 0)
 			return i;
@@ -511,7 +580,7 @@ int iskeyword(char * kw_lexeme) {
 
 
 int isAndOr() {
-
+	b_mark(sc_buf, b_getcoffset(sc_buf));
 	unsigned char c;
 	int isWord;
 	c = b_getc(sc_buf);

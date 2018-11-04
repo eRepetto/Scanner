@@ -94,6 +94,7 @@ Token malar_next_token(void)
 
 		case '\n':
 			line++;
+		case '\t':
 
 		case ' ':
 			continue;
@@ -195,135 +196,43 @@ Token malar_next_token(void)
 
 				t.code = LOG_OP_T;
 				return t;
-
 			}
 		}
 
-		/* Part 2: Implementation of Finite State Machine (DFA)*/
-		if (isalpha(c) || isdigit(c) || c == '"') {
-
+		/* Part 2: Implementation of Finite State Machine (DFA)*/	
+			
+	
 			lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) -1);
 			int capacity;
-
+						
 			while (accept == NOAS) {
 				state = get_next_state(state, c, &accept);				
 				if (accept == ASWR || accept == ASNR)
 					break;
 				c = b_getc(sc_buf);
+				
 			}
-			if (state == ASWR)
+			if (accept == ASWR)
 				b_retract(sc_buf);
 
 			lexend = b_getcoffset(sc_buf);
 			capacity = lexend - lexstart;
 
-			lex_buf = b_allocate(capacity, 0, 'f');
+			lex_buf = b_allocate(capacity+1, 0, 'f');
 
 			/*retract getc_offset to the mark set previously*/
 			b_reset(sc_buf);
-
-			for (int i = lexstart; i < lexend-1; i++) {
+			c;
+			for (int i = lexstart; i < lexend; i++) {
 				c = b_getc(sc_buf);
 				b_addc(lex_buf, c);
 			}
 
-			b_addc(lex_buf, '\0');
+			b_addc(lex_buf,'\0');
 			t = aa_table[state](b_location(lex_buf, 0));
 
-		}
-
-
-		/* Part 1: Implementation of token driven scanner */
-		/* every token is possessed by its own dedicated code */
-
-		/*WRITE YOUR CODE FOR PROCESSING THE SPECIAL - CASE TOKENS HERE.
-		COMMENTS ARE PROCESSED HERE ALSO.
-
-		WHAT FOLLOWS IS A PSEUDO CODE.YOU CAN USE switch STATEMENT
-		INSTEAD OF if - else TO PROCESS THE SPECIAL CASES
-		DO NOT FORGET TO COUNT THE PROGRAM LINES
-
-		NOTE :
-		IF LEXICAL ERROR OR ILLEGAL CHARACTER ARE FOUND THE SCANNER MUST RETURN AN ERROR TOKEN.
-		ILLEGAL CHARACTER IS ONE THAT IS NOT DEFINED IN THE LANGUAGE SPECIFICATION
-		OR IT IS OUT OF CONTEXT.
-		THE ILLEGAL CHAR IS THE ATTRIBUTE OF THE ERROR TOKEN
-		THE ILLEGAL CHARACTERS ARE PROCESSED BY THE TRANSITION TABLE.
-		SOME OF THE LEXICAL ERRORS ARE ALSO PROCESSED BY THE TRANSITION TABLE.
-
-		IN A CASE OF RUNTIME ERROR, THE FUNCTION MUST STORE
-		A NON - NEGATIVE NUMBER INTO THE GLOBAL VARIABLE scerrnum
-		AND RETURN A RUN TIME ERROR TOKEN.THE RUN TIME ERROR TOKEN ATTRIBUTE
-		MUST BE THE STRING "RUN TIME ERROR: "*/
-
-		/*	IF(c == SOME CHARACTER)
-		...
-		SKIP CHARACTER(FOR EXAMPLE SPACE)
-		continue;
-		OR SET TOKEN(SET TOKEN CODE AND TOKEN ATTRIBUTE(IF AVAILABLE))
-		return t;
-		EXAMPLE:
-		if (c == ' ') continue;
-		if (c == '{') {
-		t.code = RBR_T; no attribute  return t;
-		if (c == '+') {
-		t.code = ART_OP_T; t.attribute.arr_op = PLUS * / return t;
-		...
-
-		IF(c == '.') TRY TO PROCESS.AND. or .OR.
-		IF SOMETHING ELSE FOLLOWS.OR THE LAST.IS MISSING
-		RETURN AN ERROR TOKEN
-		IF(c == '!') TRY TO PROCESS COMMENT
-		IF THE FOLLOWING CHAR IS NOT !REPORT AN ERROR
-		ELSE IN A LOOP SKIP CHARACTERS UNTIL line terminator is found THEN continue;
-		...
-
-		IF(c == ANOTHER CHARACTER)
-		SET TOKEN
-		return t;*/
-
-
-		/* Part 2: Implementation of Finite State Machine (DFA)
-		or Transition Table driven Scanner
-		Note: Part 2 must follow Part 1 to catch the illegal symbols
-		*/
-
-		/*SET THE MARK AT THE BEGINING OF THE LEXEME AND SAVE IT IN lexstart
-		lexstart = b_mark(sc_buf, ...);
-		....
-		CODE YOUR FINATE STATE MACHINE HERE(FSM or DFA)
-		IT IMPLEMENTS THE FOLLOWING ALGORITHM :
-
-		FSM0.Begin with state = 0 and the input character c
-		FSM1.Get the next state from the transition table calling
-		state = get_next_state(state, c, &accept);
-		FSM2.Get the next character
-		FSM3.If the state is not accepting(accept == NOAS), go to step FSM1
-		If the step is accepting, token is found, leave the machine and
-		call an accepting function as described below.
-
-
-		RETRACT  getc_offset IF THE FINAL STATE IS A RETRACTING FINAL STATE
-
-		SET lexend TO getc_offset USING AN APPROPRIATE BUFFER FUNCTION
-
-		CREATE  A TEMPORRARY LEXEME BUFFER HERE;
-		lex_buf = b_allocate(...);
-		.RETRACT getc_offset to the MARK SET PREVIOUSLY AT THE BEGINNING OF THE LEXEME AND
-		.USING b_getc() COPY THE LEXEME BETWEEN lexstart AND lexend FROM THE INPUT BUFFER INTO lex_buf USING b_addc(...),
-		.WHEN VID(KEYWORDS INCLUDED), FPL OR IL IS RECOGNIZED
-		.YOU MUST CALL THE ACCEPTING FUNCTION USING THE ARRAY aa_table, WHICH
-		.CONTAINS POINTERS TO FUNCTIONS.THE ARRAY INDEX OF THE FUNCTION TO BE
-		.CALLED IS STORED IN THE VARIABLE state.
-		.YOU ARE NOT ALLOWED TO CALL ANY OF THE ACCEPTING FUNCTIONS BY NAME.
-		.THE ARGUMENT TO THE FUNCTION IS THE STRING STORED IN lex_buf.
-		....*/
-
-
-		b_free(lex_buf);
-
-		return t;
-
+			b_free(lex_buf);
+			return t;
 
 	}//end while(1)
 }
@@ -488,12 +397,13 @@ Token aa_func03(char lexeme[]) {
 		}
 	}
 	else {
-		for (int i = 0; i < lenght; i++) 
+		for (int i = 0; i < lenght-1; i++) 
 			t.attribute.vid_lex[i] = lexeme[i];
-		t.attribute.vid_lex[lenght] = '$';
-		t.attribute.vid_lex[lenght+1] = '\0';
+		t.attribute.vid_lex[lenght-1] = '$';
+		t.attribute.vid_lex[lenght] = '\0';
 	}
-	b_getc(sc_buf);
+
+	/*b_getc(sc_buf); I added this because DFA is getting the variable name but not the  $ symbol so i am jumping this character*/
 	return t;
 }
 
@@ -557,7 +467,8 @@ Token aa_func05(char lexeme[]) {
 */
 Token aa_func10(char lexeme[]) {
 	Token t;
-	t.attribute.str_offset = str_LTBL->cb_head;
+	//t.attribute.str_offset = (str_LTBL->cb_head);
+	t.attribute.str_offset = b_getcoffset(str_LTBL);
 
 	/* Add characters inside quotation marks to string literal table */
 	for (int i = 1; i < strlen(lexeme)-1; ++i) {
@@ -570,6 +481,7 @@ Token aa_func10(char lexeme[]) {
 		}
 	}
 	b_addc(str_LTBL, '\0');
+	/*b_getc(sc_buf);*/
 	t.code = STR_T;
 
 	return t;

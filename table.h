@@ -38,7 +38,7 @@
 /*REPLACE *ESN* and *ESR* WITH YOUR ERROR STATE NUMBER*/
 
 /*I put 9 and 10 here I dont know if it is us who decide this number, I tried to chose something that is not repeating*/
-#define ES  9 /* Error state  with no retract */
+#define ES  12 /* Error state  with no retract */
 #define ER  10 /* Error state  with retract */
 #define IS -1    /* Inavalid state */
 
@@ -80,7 +80,7 @@ int  st_table[][TABLE_COLUMNS] = {
 /*I put ASWR for state number 10, I don't know if is that what we need to use, I just put it for testing purpose*/
 int as_table[] = { 
 	NOAS,NOAS,ASWR,ASNR,NOAS,ASWR,NOAS,
-	NOAS,ASNR,NOAS,ASWR,ASNR,ASWR 
+	NOAS,ASWR,NOAS,ASNR,ASNR,ASWR 
 };
 
 /* Accepting action function declarations */
@@ -127,7 +127,7 @@ THE REST OF THE ELEMENTS MUST BE SET TO NULL.*/
 
 PTR_AAF aa_table[] = { 
 	NULL, NULL, aa_func02, aa_func03, NULL, aa_func05, NULL, 
-	NULL, aa_func08, NULL, aa_func10, aa_func12, NULL 
+	NULL, aa_func08, NULL, aa_func10, NULL,aa_func12, NULL 
 };
 
 /* Keyword lookup table (.AND. and .OR. are not keywords) */

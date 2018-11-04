@@ -467,8 +467,9 @@ Token aa_func05(char lexeme[]) {
 */
 Token aa_func10(char lexeme[]) {
 	Token t;
-	//t.attribute.str_offset = (str_LTBL->cb_head);
-	t.attribute.str_offset = b_getcoffset(str_LTBL);
+	t.attribute.str_offset = (str_LTBL->cb_head);
+	//t.attribute.str_offset = b_getcoffset(str_LTBL);
+	printf(lexeme);
 
 	/* Add characters inside quotation marks to string literal table */
 	for (int i = 1; i < strlen(lexeme)-1; ++i) {
@@ -481,7 +482,6 @@ Token aa_func10(char lexeme[]) {
 		}
 	}
 	b_addc(str_LTBL, '\0');
-	/*b_getc(sc_buf);*/
 	t.code = STR_T;
 
 	return t;

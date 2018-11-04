@@ -200,14 +200,13 @@ Token malar_next_token(void)
 		}
 
 		/* Part 2: Implementation of Finite State Machine (DFA)*/
-		if (isalpha(c) || isdigit(c)) {
+		if (isalpha(c) || isdigit(c) || c == '"') {
 
-			lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
+			lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) -1);
 			int capacity;
 
 			while (accept == NOAS) {
-				state = get_next_state(state, c, &accept);
-
+				state = get_next_state(state, c, &accept);				
 				if (accept == ASWR || accept == ASNR)
 					break;
 				c = b_getc(sc_buf);
@@ -223,7 +222,7 @@ Token malar_next_token(void)
 			/*retract getc_offset to the mark set previously*/
 			b_reset(sc_buf);
 
-			for (int i = 1; i < capacity; i++) {
+			for (int i = lexstart; i < lexend-1; i++) {
 				c = b_getc(sc_buf);
 				b_addc(lex_buf, c);
 			}
@@ -401,9 +400,9 @@ int char_class(char c)
 		column = 2;
 	else if (c == '.')
 		column = 3;
-	else if (c == '&')
+	else if (c == '$')
 		column = 4;
-	else if (c == '\"')
+	else if (c == '"')
 		column = 5;
 	else
 		column = 6;
@@ -475,18 +474,26 @@ Token aa_func02(char lexeme[]) {
 Token aa_func03(char lexeme[]) {
 	Token t;
 	t.code = SVID_T;
+	int lenght = (strlen(lexeme));
 
+	if (lenght > VID_LEN){
 	/* Only first vid_len - 1 characters are stored, followed by '$' and '\0' */
-	for (int i = 0; i < VID_LEN; ++i) {
-		if (i == VID_LEN - 1) {
-			t.attribute.vid_lex[i] = '$';
-			t.attribute.vid_lex[i + 1] = '\0';
-		}
-		else {
-			t.attribute.vid_lex[i] = lexeme[i];
+		for (int i = 0; i < VID_LEN; ++i) {
+			if (i == VID_LEN - 1) {
+				t.attribute.vid_lex[i] = '$';
+				t.attribute.vid_lex[i + 1] = '\0';
+			}
+			else
+				t.attribute.vid_lex[i] = lexeme[i];
 		}
 	}
-
+	else {
+		for (int i = 0; i < lenght; i++) 
+			t.attribute.vid_lex[i] = lexeme[i];
+		t.attribute.vid_lex[lenght] = '$';
+		t.attribute.vid_lex[lenght+1] = '\0';
+	}
+	b_getc(sc_buf);
 	return t;
 }
 
@@ -553,7 +560,7 @@ Token aa_func10(char lexeme[]) {
 	t.attribute.str_offset = str_LTBL->cb_head;
 
 	/* Add characters inside quotation marks to string literal table */
-	for (int i = 1; i < strlen(lexeme) - 1; ++i) {
+	for (int i = 1; i < strlen(lexeme)-1; ++i) {
 		if (lexeme[i] == '\n') {
 			++line;
 		}
@@ -654,6 +661,6 @@ int isAndOr() {
 	}
 
 	b_reset(sc_buf);
-	return -1;
+	return 0;
 
 }

@@ -57,7 +57,7 @@ int  st_table[][TABLE_COLUMNS] = {
 	/* State 4 */ {ES, 4, 4, 7, 5, ES, 5},
 	/* State 5 */ {IS, IS, IS, IS, IS, IS, IS},
 	/* State 6 */ {ES, 6, ES, 7, ES, ES, 5},  /* Where there was a choice of states, I put ES for the time being */
-	/* State 7 */ {ES, 7, 7, ES, 8, ES, 8},
+	/* State 7 */ {ES, 7, 7, 8, 8, ES, 8},
 	/* State 8 */ {IS, IS, IS, IS, IS, IS, IS},
 	/* State 9 */ {9, 9, 9, 9, 9, 10, 9}, 
 	/* State 10 */{IS, IS, IS, IS, IS, IS}, 
@@ -99,7 +99,6 @@ Token aa_func03(char *lexeme);
 Token aa_func05(char *lexeme);
 Token aa_func08(char *lexeme);
 Token aa_func10(char *lexeme); /* string literal?*/
-							   /*Token aa_func11(char *lexeme);*/
 Token aa_func12(char *lexeme);
 
 

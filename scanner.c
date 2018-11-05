@@ -197,20 +197,24 @@ Token malar_next_token(void)
 					t.attribute.log_op = OR;
 
 				t.code = LOG_OP_T;
-				return t;
+				
 			}
+			else {
+				t.code = ERR_T;
+				t.attribute.err_lex[0] = '.';
+			}
+			return t;
+			
 		}
 
 		/* Part 2: Implementation of Finite State Machine (DFA)*/
 		lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
 		short capacity;
-
 		while (accept == NOAS) {
 			state = get_next_state(state, c, &accept);
 			if (accept == ASWR || accept == ASNR)
 				break;
 			c = b_getc(sc_buf);
-
 		}
 		if (accept == ASWR)
 			b_retract(sc_buf);
@@ -218,14 +222,21 @@ Token malar_next_token(void)
 		lexend = b_getcoffset(sc_buf);
 		capacity = lexend - lexstart;
 
-		lex_buf = b_allocate(capacity + 1, 0, 'f');
+		lex_buf = b_allocate(capacity + 2, 0, 'f');
 
 		/*retract getc_offset to the mark set previously*/
 		b_reset(sc_buf);
-		for (int i = lexstart; i < lexend; i++) {
+
+		/*for (int i = lexstart; i < lexend; i++) {
 			c = b_getc(sc_buf);
 			b_addc(lex_buf, c);
-		}
+		}*/
+
+		do {
+			c = b_getc(sc_buf);
+			b_addc(lex_buf, c);
+			lexstart++;
+		} while (lexstart < lexend);
 
 		b_addc(lex_buf, '\0');
 		t = aa_table[state](b_location(lex_buf, 0));
@@ -422,10 +433,30 @@ Token aa_func08(char lexeme[]) {
 	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
 	return t;*/
 
-	float num = (float) atof(lexeme);
-	t.code = FPL_T;
-	t.attribute.flt_value = num;
+	double num = atof(lexeme);
+	int i = 0;
 
+	if (num < FLT_MAX && num > FLT_MIN) {
+		t.code = FPL_T;
+		t.attribute.flt_value = num;
+	}
+
+	else {
+
+		if (strlen(lexeme) > ERR_LEN) {
+			for ( i = 0; i < ERR_LEN - 3; i++) 
+				t.attribute.err_lex[i] = lexeme[i];
+				for( ; i < ERR_LEN; i++)
+					t.attribute.err_lex[i] = '.';
+				t.attribute.err_lex[i] = '\0';
+		}
+		else {
+			for (i = 0; i < strlen(lexeme); i++)
+				t.attribute.err_lex[i] = lexeme[i];
+			t.attribute.err_lex[i] = '\0';
+		}
+		t.code = ERR_T;
+	}
 	return t;
 
 }
@@ -437,12 +468,6 @@ Token aa_func08(char lexeme[]) {
 */
 Token aa_func05(char lexeme[]) {
 
-	Token t;
-	long num = atol(lexeme);
-	t.code = INL_T;
-	t.attribute.int_value = num;
-	return t;
-
 	/*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT
 	TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
 	THE VALUE MUST BE IN THE SAME RANGE AS the value of 2 - byte integer in C.
@@ -453,6 +478,34 @@ Token aa_func05(char lexeme[]) {
 	err_lex C - type string.
 	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
 	return t;*/
+	
+	Token t;
+	long num = atol(lexeme);
+	int i = 0;
+	
+	if (num < SHRT_MAX && num > SHRT_MIN) {
+		t.code = INL_T;
+		t.attribute.int_value = num;
+	}
+
+	else {
+
+		if (strlen(lexeme) > ERR_LEN) {
+			for (i = 0; i < ERR_LEN - 3; i++)
+				t.attribute.err_lex[i] = lexeme[i];
+			for (; i < ERR_LEN; i++)
+				t.attribute.err_lex[i] = '.';
+			t.attribute.err_lex[i] = '\0';			
+		}
+		else {
+			for ( i = 0; i < strlen(lexeme); i++) 
+				t.attribute.err_lex[i] = lexeme[i];
+			t.attribute.err_lex[i] = '\0';
+		}
+		t.code = ERR_T;
+	}
+	return t;
+
 }
 
 /*

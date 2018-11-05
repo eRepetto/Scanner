@@ -37,6 +37,9 @@
 #define ES  12 /* Error state  with no retract */
 #define ER  12 /* Error state  with retract */
 #define IS -1    /* Inavalid state */
+#define FLT_MAX 3.402823466e+38F
+#define FLT_MIN 1.175494351e-38F
+
 
 /* State transition table definition */
 

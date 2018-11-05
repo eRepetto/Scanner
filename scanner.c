@@ -54,6 +54,7 @@ static int char_class(char c); /* character class function */
 static int get_next_state(int, char, int *); /* state machine function */
 static int iskeyword(char * kw_lexeme); /*keywords lookup functuion */
 static int isAndOr();
+int counter = 0;
 
 
 /*Initializes scanner */
@@ -85,6 +86,7 @@ Token malar_next_token(void)
 				/*	GET THE NEXT SYMBOL FROM THE INPUT BUFFER*/
 
 		c = b_getc(sc_buf);
+		counter++;
 
 		switch (c) {
 
@@ -199,40 +201,37 @@ Token malar_next_token(void)
 			}
 		}
 
-		/* Part 2: Implementation of Finite State Machine (DFA)*/	
-			
-	
-			lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) -1);
-			int capacity;
-						
-			while (accept == NOAS) {
-				state = get_next_state(state, c, &accept);				
-				if (accept == ASWR || accept == ASNR)
-					break;
-				c = b_getc(sc_buf);
-				
-			}
-			if (accept == ASWR)
-				b_retract(sc_buf);
+		/* Part 2: Implementation of Finite State Machine (DFA)*/
+		lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
+		short capacity;
 
-			lexend = b_getcoffset(sc_buf);
-			capacity = lexend - lexstart;
+		while (accept == NOAS) {
+			state = get_next_state(state, c, &accept);
+			if (accept == ASWR || accept == ASNR)
+				break;
+			c = b_getc(sc_buf);
 
-			lex_buf = b_allocate(capacity+1, 0, 'f');
+		}
+		if (accept == ASWR)
+			b_retract(sc_buf);
 
-			/*retract getc_offset to the mark set previously*/
-			b_reset(sc_buf);
-			c;
-			for (int i = lexstart; i < lexend; i++) {
-				c = b_getc(sc_buf);
-				b_addc(lex_buf, c);
-			}
+		lexend = b_getcoffset(sc_buf);
+		capacity = lexend - lexstart;
 
-			b_addc(lex_buf,'\0');
-			t = aa_table[state](b_location(lex_buf, 0));
+		lex_buf = b_allocate(capacity + 1, 0, 'f');
 
-			b_free(lex_buf);
-			return t;
+		/*retract getc_offset to the mark set previously*/
+		b_reset(sc_buf);
+		for (int i = lexstart; i < lexend; i++) {
+			c = b_getc(sc_buf);
+			b_addc(lex_buf, c);
+		}
+
+		b_addc(lex_buf, '\0');
+		t = aa_table[state](b_location(lex_buf, 0));
+
+		b_free(lex_buf);
+		return t;
 
 	}//end while(1)
 }
@@ -256,9 +255,7 @@ int get_next_state(int state, char c, int *accept)
 	assert() is a macro that expands to an if statement;
 	if test evaluates to false (zero) , assert aborts the program
 	(by calling abort()) and sends the following message on stderr:
-
 	Assertion failed: test, file filename, line linenum
-
 	The filename and linenum listed in the message are the source file name
 	and line number where the assert macro appears.
 	If you place the #define NDEBUG directive ("no debugging")
@@ -323,7 +320,6 @@ int char_class(char c)
 
 /*	HERE YOU WRITE THE DEFINITIONS FOR YOUR ACCEPTING FUNCTIONS.
 ************************************************************
-
 ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
 REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
 
@@ -338,7 +334,6 @@ Token aa_func02(char lexeme[]) {
 	FOR THE KEYWORD.THE ATTRIBUTE CODE FOR THE KEYWORD
 	IS ITS INDEX IN THE KEYWORD LOOKUP TABLE(kw_table in table.h).
 	IF THE LEXEME IS NOT A KEYWORD, GO TO STEP 2.
-
 	2. SET a AVID TOKEN.
 	IF THE lexeme IS LONGER than VID_LEN(see token.h) CHARACTERS,
 	ONLY FIRST VID_LEN CHARACTERS ARE STORED
@@ -366,9 +361,9 @@ Token aa_func02(char lexeme[]) {
 	}
 	else {
 		t.code = AVID_T;
-		for (int i = 0; i < (strlen(lexeme)); i++) {
+		for (size_t i = 0; i < strlen(lexeme); i++) {
 			t.attribute.vid_lex[i] = lexeme[i];
-			if (i + 1 == (strlen(lexeme)))
+			if (i + 1 == strlen(lexeme))
 				t.attribute.vid_lex[i + 1] = '\0';
 		}
 	}
@@ -385,8 +380,8 @@ Token aa_func03(char lexeme[]) {
 	t.code = SVID_T;
 	int lenght = (strlen(lexeme));
 
-	if (lenght > VID_LEN){
-	/* Only first vid_len - 1 characters are stored, followed by '$' and '\0' */
+	if (lenght > VID_LEN) {
+		/* Only first vid_len - 1 characters are stored, followed by '$' and '\0' */
 		for (int i = 0; i < VID_LEN; ++i) {
 			if (i == VID_LEN - 1) {
 				t.attribute.vid_lex[i] = '$';
@@ -397,9 +392,9 @@ Token aa_func03(char lexeme[]) {
 		}
 	}
 	else {
-		for (int i = 0; i < lenght-1; i++) 
+		for (int i = 0; i < lenght - 1; i++)
 			t.attribute.vid_lex[i] = lexeme[i];
-		t.attribute.vid_lex[lenght-1] = '$';
+		t.attribute.vid_lex[lenght - 1] = '$';
 		t.attribute.vid_lex[lenght] = '\0';
 	}
 
@@ -427,7 +422,7 @@ Token aa_func08(char lexeme[]) {
 	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
 	return t;*/
 
-	float num = atof(lexeme);
+	float num = (float) atof(lexeme);
 	t.code = FPL_T;
 	t.attribute.flt_value = num;
 
@@ -460,24 +455,22 @@ Token aa_func05(char lexeme[]) {
 	return t;*/
 }
 
-/*ACCEPTING FUNCTION FOR THE string literal(SL)*/
-
 /*
+* ACCEPTING FUNCTION FOR THE string literal(SL)
+*
 * Author: Gabriel Richard
 */
 Token aa_func10(char lexeme[]) {
 	Token t;
-	t.attribute.str_offset = (str_LTBL->cb_head);
-	//t.attribute.str_offset = b_getcoffset(str_LTBL);
-	printf(lexeme);
+	t.attribute.str_offset = b_limit(str_LTBL);
 
 	/* Add characters inside quotation marks to string literal table */
-	for (int i = 1; i < strlen(lexeme)-1; ++i) {
+	for (size_t i = 1; i < strlen(lexeme) - 1; ++i) {
 		if (lexeme[i] == '\n') {
 			++line;
 		}
 		/* Attempt to insert characters into string literal table */
-		if (b_addc(str_LTBL, lexeme[i]) == NULL) {
+		if (!b_addc(str_LTBL, lexeme[i])) {
 			break;
 		}
 	}
@@ -498,11 +491,11 @@ Token aa_func12(char lexeme[]) {
 	/* Strings longer than 20 characters shall only show the first 17 characters
 	and append three dots (...) to the end */
 	if (strlen(lexeme) > ERR_LEN) {
-		for (int i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
+		for (int i = 0; i <= ERR_LEN; ++i) {
 			if (lexeme[i] == '\n') {
 				++line;
 			}
-			if (i == ERR_LEN || i == strlen(lexeme)) {
+			if (i == ERR_LEN) {
 				/* Not sure if this is needed, but the description says c-style stying so I put it in for now */
 				t.attribute.err_lex[i] = '\0';
 			}
@@ -514,7 +507,19 @@ Token aa_func12(char lexeme[]) {
 			}
 		}
 	}
-
+	else {
+		for (size_t i = 0; i <= strlen(lexeme); ++i) {
+			if (lexeme[i] == '\n') {
+				++line;
+			}
+			if (i == strlen(lexeme)) {
+				t.attribute.err_lex[i] = '\0';
+			}
+			else {
+				t.attribute.err_lex[i] = lexeme[i];
+			}
+		}
+	}
 	t.code = ERR_T;
 	return t;
 }
@@ -524,9 +529,6 @@ Token aa_func12(char lexeme[]) {
 
 /*HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS(IF ANY).
 FOR EXAMPLE*/
-
-
-
 
 int iskeyword(char * kw_lexeme) {
 

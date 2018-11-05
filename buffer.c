@@ -31,7 +31,7 @@ Buffer *b_allocate(short init_capacity, char inc_factor, char o_mode) {
 
 	Buffer *temp; /* pointer to buffer structure */
 
-	/*if increment is negative it will return null*/
+				  /*if increment is negative it will return null*/
 	if (inc_factor < 0)
 		return NULL;
 

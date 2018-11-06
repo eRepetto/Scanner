@@ -209,7 +209,6 @@ Token malar_next_token(void)
 			if (accept == ASWR || accept == ASNR)
 				break;
 			c = b_getc(sc_buf);
-
 		}
 		if (accept == ASWR)
 			b_retract(sc_buf);
@@ -479,33 +478,18 @@ Token aa_func12(char lexeme[]) {
 
 	/* Strings longer than 20 characters shall only show the first 17 characters
 	and append three dots (...) to the end */
-	if (strlen(lexeme) > ERR_LEN) {
-		for (int i = 0; i <= ERR_LEN; ++i) {
-			if (lexeme[i] == '\n') {
-				++line;
-			}
-			if (i == ERR_LEN) {
-				t.attribute.err_lex[i] = '\0';
-			}
-			else if (i >= ERR_LEN - 3) {
-				t.attribute.err_lex[i] = '.';
-			}
-			else {
-				t.attribute.err_lex[i] = lexeme[i];
-			}
+	for (int i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
+		if (lexeme[i] == '\n') {
+			++line;
 		}
-	}
-	else {
-		for (size_t i = 0; i <= strlen(lexeme); ++i) {
-			if (lexeme[i] == '\n') {
-				++line;
-			}
-			if (i == strlen(lexeme)) {
-				t.attribute.err_lex[i] = '\0';
-			}
-			else {
-				t.attribute.err_lex[i] = lexeme[i];
-			}
+		if (i == ERR_LEN || i == strlen(lexeme)) {
+			t.attribute.err_lex[i] = '\0';
+		}
+		else if (i >= ERR_LEN - 3) {
+			t.attribute.err_lex[i] = '.';
+		}
+		else {
+			t.attribute.err_lex[i] = lexeme[i];
 		}
 	}
 	t.code = ERR_T;

@@ -54,7 +54,6 @@ static int char_class(char c); /* character class function */
 static int get_next_state(int, char, int *); /* state machine function */
 static int iskeyword(char * kw_lexeme); /*keywords lookup functuion */
 static int isAndOr();
-int counter = 0;
 
 
 /*Initializes scanner */
@@ -86,21 +85,22 @@ Token malar_next_token(void)
 				/*	GET THE NEXT SYMBOL FROM THE INPUT BUFFER*/
 
 		c = b_getc(sc_buf);
-		counter++;
 
 		switch (c) {
 
 		case '\0':
+			t.attribute.seof = SEOF1;
 			t.code = SEOF_T;
 			return t;
-
+		case 255:
+			t.attribute.seof = SEOF2;
+			t.code = SEOF_T;
+			return t;
 		case '\n':
 			line++;
 		case '\t':
-
 		case ' ':
 			continue;
-
 		case '!':
 			/*gets next character to see if is a comment line */
 			c = b_getc(sc_buf);
@@ -184,7 +184,6 @@ Token malar_next_token(void)
 				t.code = ASS_OP_T;
 			}
 			return t;
-
 			/* Logical operators */
 		case '.':
 			temp = isAndOr(); /* if function return 1 is .AND. if return 2 is .OR.*/
@@ -197,24 +196,20 @@ Token malar_next_token(void)
 					t.attribute.log_op = OR;
 
 				t.code = LOG_OP_T;
-				
+				return t;
 			}
-			else {
-				t.code = ERR_T;
-				t.attribute.err_lex[0] = '.';
-			}
-			return t;
-			
 		}
 
 		/* Part 2: Implementation of Finite State Machine (DFA)*/
 		lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
 		short capacity;
+
 		while (accept == NOAS) {
 			state = get_next_state(state, c, &accept);
 			if (accept == ASWR || accept == ASNR)
 				break;
 			c = b_getc(sc_buf);
+
 		}
 		if (accept == ASWR)
 			b_retract(sc_buf);
@@ -222,21 +217,14 @@ Token malar_next_token(void)
 		lexend = b_getcoffset(sc_buf);
 		capacity = lexend - lexstart;
 
-		lex_buf = b_allocate(capacity + 2, 0, 'f');
+		lex_buf = b_allocate(capacity + 1, 0, 'f');
 
 		/*retract getc_offset to the mark set previously*/
 		b_reset(sc_buf);
-
-		/*for (int i = lexstart; i < lexend; i++) {
+		for (int i = lexstart; i < lexend; i++) {
 			c = b_getc(sc_buf);
 			b_addc(lex_buf, c);
-		}*/
-
-		do {
-			c = b_getc(sc_buf);
-			b_addc(lex_buf, c);
-			lexstart++;
-		} while (lexstart < lexend);
+		}
 
 		b_addc(lex_buf, '\0');
 		t = aa_table[state](b_location(lex_buf, 0));
@@ -295,18 +283,6 @@ int get_next_state(int state, char c, int *accept)
 
 int char_class(char c)
 {
-
-	/*
-	THIS FUNCTION RETURNS THE COLUMN NUMBER IN THE TRANSITION
-	TABLE st_table FOR THE INPUT CHARACTER c.
-	SOME COLUMNS MAY REPRESENT A CHARACTER CLASS .
-	FOR EXAMPLE IF COLUMN 2 REPRESENTS[A - Za - z]
-	THE FUNCTION RETURNS 2 EVERY TIME c IS ONE
-	OF THE LETTERS A, B, ..., Z, a, b...z.
-	PAY ATTENTION THAT THE FIRST COLOMN IN THE TT IS 0 (has index 0)
-	*/
-
-
 	int column;
 
 	if (isalpha(c))
@@ -321,8 +297,10 @@ int char_class(char c)
 		column = 4;
 	else if (c == '"')
 		column = 5;
-	else
+	else if (c == '\0' || c == 255)
 		column = 6;
+	else
+		column = 7;
 
 	return column;
 }
@@ -433,30 +411,10 @@ Token aa_func08(char lexeme[]) {
 	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
 	return t;*/
 
-	double num = atof(lexeme);
-	int i = 0;
+	float num = (float) atof(lexeme);
+	t.code = FPL_T;
+	t.attribute.flt_value = num;
 
-	if (num < FLT_MAX && num > FLT_MIN) {
-		t.code = FPL_T;
-		t.attribute.flt_value = num;
-	}
-
-	else {
-
-		if (strlen(lexeme) > ERR_LEN) {
-			for ( i = 0; i < ERR_LEN - 3; i++) 
-				t.attribute.err_lex[i] = lexeme[i];
-				for( ; i < ERR_LEN; i++)
-					t.attribute.err_lex[i] = '.';
-				t.attribute.err_lex[i] = '\0';
-		}
-		else {
-			for (i = 0; i < strlen(lexeme); i++)
-				t.attribute.err_lex[i] = lexeme[i];
-			t.attribute.err_lex[i] = '\0';
-		}
-		t.code = ERR_T;
-	}
 	return t;
 
 }
@@ -468,6 +426,12 @@ Token aa_func08(char lexeme[]) {
 */
 Token aa_func05(char lexeme[]) {
 
+	Token t;
+	long num = atol(lexeme);
+	t.code = INL_T;
+	t.attribute.int_value = num;
+	return t;
+
 	/*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT
 	TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
 	THE VALUE MUST BE IN THE SAME RANGE AS the value of 2 - byte integer in C.
@@ -478,34 +442,6 @@ Token aa_func05(char lexeme[]) {
 	err_lex C - type string.
 	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
 	return t;*/
-	
-	Token t;
-	long num = atol(lexeme);
-	int i = 0;
-	
-	if (num < SHRT_MAX && num > SHRT_MIN) {
-		t.code = INL_T;
-		t.attribute.int_value = num;
-	}
-
-	else {
-
-		if (strlen(lexeme) > ERR_LEN) {
-			for (i = 0; i < ERR_LEN - 3; i++)
-				t.attribute.err_lex[i] = lexeme[i];
-			for (; i < ERR_LEN; i++)
-				t.attribute.err_lex[i] = '.';
-			t.attribute.err_lex[i] = '\0';			
-		}
-		else {
-			for ( i = 0; i < strlen(lexeme); i++) 
-				t.attribute.err_lex[i] = lexeme[i];
-			t.attribute.err_lex[i] = '\0';
-		}
-		t.code = ERR_T;
-	}
-	return t;
-
 }
 
 /*
@@ -533,9 +469,9 @@ Token aa_func10(char lexeme[]) {
 	return t;
 }
 
-/*	ACCEPTING FUNCTION FOR THE ERROR TOKEN*/
-
 /*
+* ACCEPTING FUNCTION FOR THE ERROR TOKEN
+*
 * Author: Gabriel Richard
 */
 Token aa_func12(char lexeme[]) {
@@ -549,10 +485,9 @@ Token aa_func12(char lexeme[]) {
 				++line;
 			}
 			if (i == ERR_LEN) {
-				/* Not sure if this is needed, but the description says c-style stying so I put it in for now */
 				t.attribute.err_lex[i] = '\0';
 			}
-			else if (i >= ERR_LEN - 4) {
+			else if (i >= ERR_LEN - 3) {
 				t.attribute.err_lex[i] = '.';
 			}
 			else {

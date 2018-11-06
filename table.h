@@ -1,13 +1,13 @@
-/* Filename: table.h
-* Transition Table and function declarations necessary for the scanner implementation
-* as required for CST8152 - Assignment #2.
-* Version: 1.18.2
-* Date: 1 October 2018
-* Provided by: Svillen Ranev
-* The file is incomplete. You are to complete it.
-***************************************************
-* REPLACE THIS HEADER WITH YOUR HEADER
-***************************************************
+/*
+*File name: table.h
+*Compiler: MS Visual Studio 2015
+*Author: Gabriel Richard [student number], Exequiel Repetto, 040885774
+*Course: CST 8152 – Compilers, Lab Section: 11
+*Assignment: 2
+*Date: 2018-11-08
+*Professor: Sv. Ranev
+*Purpose:
+*Function list:
 */
 
 #ifndef  TABLE_H_
@@ -57,7 +57,7 @@ int  st_table[][TABLE_COLUMNS] = {
 	/* State 10 */{ IS, IS, IS, IS, IS, 11, IS },
 	/* State 11 */{ IS, IS, IS, IS, IS, 11, IS },
 	/* State 12 */{ IS, IS, IS, IS, IS, 11, IS },
-	/* State 13 */{ IS, IS, IS, IS, IS, 11, IS } /*Reserved for future use*/ /*I added IS to complete the table and be able to run the program*/
+	/* State 13 */{ IS, IS, IS, IS, IS, 11, IS } 
 
 };
 

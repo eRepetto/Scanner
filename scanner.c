@@ -1,15 +1,13 @@
-/* Filename: scanner.c
-/* PURPOSE:
-*    SCANNER.C: Functions implementing a Lexical Analyzer (Scanner)
-*    as required for CST8152, Assignment #2
-*    scanner_init() must be called before using the scanner.
-*    The file is incomplete;
-*    Provided by: Svillen Ranev
-*    Version: 1.18.2
-*    Date: 1 October 2018
-*******************************************************************
-*    REPLACE THIS HEADER WITH YOUR HEADER
-*******************************************************************
+/*
+*File name: scanner.c
+*Compiler: MS Visual Studio 2015
+*Author: Gabriel Richard [student number], Exequiel Repetto, 040885774
+*Course: CST 8152 – Compilers, Lab Section: 11
+*Assignment: 2
+*Date: 2018-11-08
+*Professor: Sv. Ranev
+*Purpose: 
+*Function list:
 */
 
 /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
@@ -68,6 +66,15 @@ int scanner_init(Buffer * psc_buf) {
 						/*   scerrnum = 0;  *//*no need - global ANSI C */
 }
 
+/*
+*Purpose: 
+*Author: Gabriel Richard [student num], Exequiel Repetto 040885774
+*History/Versions: 
+*Called functions: b_getc(), b_retract(), isAndOr(), b_mark(), b_getcoffset(), get_next_state(), b_allocate(), b_reset(),b_addc(), b_free()
+*Parameters: 
+*Return value: 
+*Algorithm:
+*/
 Token malar_next_token(void)
 {
 	Token t = { 0 }; /* token to return after pattern recognition. Set all structure members to 0 */
@@ -77,8 +84,6 @@ Token malar_next_token(void)
 	short lexend = 0;    /*end   offset of a lexeme in the input char buffer (array)*/
 	int accept = NOAS; /* type of state - initially not accepting */
 	int temp = 0; /*used to store temporary integers*/
-
-				  /*	DECLARE YOUR LOCAL VARIABLES HERE IF NEEDED*/
 
 	while (1) { /* endless loop broken by token returns it will generate a warning */
 
@@ -236,9 +241,15 @@ Token malar_next_token(void)
 }
 
 
-/*DO NOT MODIFY THE CODE OF THIS FUNCTION
-YOU CAN REMOVE THE COMMENTS*/
-
+/*
+*Purpose:
+*Author: Sv. Ranev
+*History/Versions:
+*Called functions: char_class()
+*Parameters:
+*Return value:
+*Algorithm:
+*/
 int get_next_state(int state, char c, int *accept)
 {
 	int col;
@@ -248,28 +259,9 @@ int get_next_state(int state, char c, int *accept)
 #ifdef DEBUG
 	printf("Input symbol: %c Row: %d Column: %d Next: %d \n", c, state, col, next);
 #endif
-	/*
-	The assert(int test) macro can be used to add run-time diagnostic to programs
-	and to "defend" from producing unexpected results.
-	assert() is a macro that expands to an if statement;
-	if test evaluates to false (zero) , assert aborts the program
-	(by calling abort()) and sends the following message on stderr:
-	Assertion failed: test, file filename, line linenum
-	The filename and linenum listed in the message are the source file name
-	and line number where the assert macro appears.
-	If you place the #define NDEBUG directive ("no debugging")
-	in the source code before the #include <assert.h> directive,
-	the effect is to comment out the assert statement.
-	*/
+	
 	assert(next != IS);
 
-	/*
-	The other way to include diagnostics in a program is to use
-	conditional preprocessing as shown bellow. It allows the programmer
-	to send more details describing the run-time problem.
-	Once the program is tested thoroughly #define DEBUG is commented out
-	or #undef DEBUF is used - see the top of the file.
-	*/
 #ifdef DEBUG
 	if (next == IS) {
 		printf("Scanner Error: Illegal state:\n");
@@ -281,6 +273,15 @@ int get_next_state(int state, char c, int *accept)
 	return next;
 }
 
+/*
+*Purpose:
+*Author: Gabriel Richard [student num], Exequiel Repetto 040885774
+*History/Versions: 1.0
+*Called functions: isalpha(), isdigit()
+*Parameters:
+*Return value:
+*Algorithm:
+*/
 int char_class(char c)
 {
 	int column;
@@ -305,30 +306,20 @@ int char_class(char c)
 	return column;
 }
 
-
-
-/*	HERE YOU WRITE THE DEFINITIONS FOR YOUR ACCEPTING FUNCTIONS.
-************************************************************
+/*
 ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
-REPLACE XX WITH THE CORRESPONDING ACCEPTING STATE NUMBER*/
 
 /*
-* Author: Exequiel Repetto
+*Purpose: 
+*Author: Exequiel Repetto 040885774
+*History/Versions: 1.0
+*Called functions: isKeyword(), strlen()
+*Parameters: 
+*Return value: 
+*Algorithm:
 */
-Token aa_func02(char lexeme[]) {
 
-	/*WHEN CALLED THE FUNCTION MUST
-	1. CHECK IF THE LEXEME IS A KEYWORD.
-	IF YES, IT MUST RETURN A TOKEN WITH THE CORRESPONDING ATTRIBUTE
-	FOR THE KEYWORD.THE ATTRIBUTE CODE FOR THE KEYWORD
-	IS ITS INDEX IN THE KEYWORD LOOKUP TABLE(kw_table in table.h).
-	IF THE LEXEME IS NOT A KEYWORD, GO TO STEP 2.
-	2. SET a AVID TOKEN.
-	IF THE lexeme IS LONGER than VID_LEN(see token.h) CHARACTERS,
-	ONLY FIRST VID_LEN CHARACTERS ARE STORED
-	INTO THE VARIABLE ATTRIBUTE ARRAY vid_lex[](see token.h) .
-	ADD \0 AT THE END TO MAKE A C - type STRING.
-	return t;*/
+Token aa_func02(char lexeme[]) {
 
 	Token t;
 
@@ -362,8 +353,15 @@ Token aa_func02(char lexeme[]) {
 /* ACCEPTING FUNCTION FOR THE string variable identifier(VID - SVID) */
 
 /*
-* Author: Gabriel Richard
+*Purpose: 
+*Author: Gabriel Richard [student num]
+*History/Versions: 1.0
+*Called functions: strlen()
+*Parameters: 
+*Return value: 
+*Algorithm:
 */
+
 Token aa_func03(char lexeme[]) {
 	Token t;
 	t.code = SVID_T;
@@ -387,21 +385,27 @@ Token aa_func03(char lexeme[]) {
 		t.attribute.vid_lex[lenght] = '\0';
 	}
 
-	/*b_getc(sc_buf); I added this because DFA is getting the variable name but not the  $ symbol so i am jumping this character*/
 	return t;
 }
 
 /*ACCEPTING FUNCTION FOR THE floating - point literal (FPL)*/
 
 /*
-* Author: Exequiel Repetto
+*Purpose: 
+*Author: Exequiel Repetto 040885774
+*History/Versions: 1.0 
+*Called functions: atof(), strlen()
+*Parameters: 
+*Return value: 
+*Algorithm:
 */
+
 Token aa_func08(char lexeme[]) {
 
 	Token t;
 	
 	double num = atof(lexeme);
-	int i = 0;
+	size_t i = 0;
 
 	if (num <= FLT_MAX  && num >= FLT_MIN  || num == 0)  {
 		t.code = FPL_T;
@@ -431,13 +435,19 @@ Token aa_func08(char lexeme[]) {
 /*	ACCEPTING FUNCTION FOR THE integer literal(IL)-decimal constant(DIL)*/
 
 /*
-* Author: Exequiel Repetto
+*Purpose: 
+*Author: Exequiel Repetto 040885774
+*History/Versions: 1.0
+*Called functions: atol(), strlen()
+*Parameters: 
+*Return value: 
+*Algorithm:
 */
 Token aa_func05(char lexeme[]) {
 
 	Token t;
 	long num = atol(lexeme);
-	int i = 0;
+	size_t i = 0;
 
 	if (num <= SHRT_MAX && num >= SHRT_MIN) {
 		t.code = INL_T;
@@ -445,7 +455,6 @@ Token aa_func05(char lexeme[]) {
 	}
 
 	else {
-
 		if (strlen(lexeme) > ERR_LEN) {
 			for (i = 0; i < ERR_LEN - 3; i++)
 				t.attribute.err_lex[i] = lexeme[i];
@@ -467,8 +476,15 @@ Token aa_func05(char lexeme[]) {
 /*
 * ACCEPTING FUNCTION FOR THE string literal(SL)
 *
-* Author: Gabriel Richard
+*Purpose: 
+*Author: Gabriel Richard [student num]
+*History/Versions: 1.0
+*Called functions: b_limit(), strlen(), b_addc()
+*Parameters: 
+*Return value: 
+*Algorithm:
 */
+
 Token aa_func10(char lexeme[]) {
 	Token t;
 	t.attribute.str_offset = b_limit(str_LTBL);
@@ -492,8 +508,15 @@ Token aa_func10(char lexeme[]) {
 /*
 * ACCEPTING FUNCTION FOR THE ERROR TOKEN
 *
-* Author: Gabriel Richard
+*Purpose: 
+*Author: Gabriel Richard [student num]
+*History/Versions: 1.0
+*Called functions: strlen()
+*Parameters: 
+*Return value: 
+*Algorithm:
 */
+
 Token aa_func12(char lexeme[]) {
 	Token t;
 
@@ -532,15 +555,15 @@ Token aa_func12(char lexeme[]) {
 	return t;
 }
 
-/*should we add function 11 as well? not sure about it yet*/
-
-
-/*HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS(IF ANY).
-FOR EXAMPLE*/
-
+/*Purpose:
+*Author: Gabriel Richard [student num], Exequiel Repetto 040885774
+*History/Versions: 1.0
+*Called functions: strcmp()
+*Parameters:
+*Return value:
+*Algorithm:
+*/
 int iskeyword(char * kw_lexeme) {
-
-	/*printf("%s", kw_lexeme);*/
 
 	for (int i = 0; i < KWT_SIZE; i++) {
 		if (strcmp(kw_lexeme, kw_table[i]) == 0)
@@ -549,7 +572,14 @@ int iskeyword(char * kw_lexeme) {
 	return -1;
 }
 
-
+/*Purpose:
+*Author: Gabriel Richard, Exequiel Repetto 040885774
+*History/Versions: 1.0
+*Called functions: b_mark, b_getcoffset(), b_getc(), b_reset()
+*Parameters:
+*Return value:
+*Algorithm:
+*/
 int isAndOr() {
 	b_mark(sc_buf, b_getcoffset(sc_buf));
 	unsigned char c;
@@ -581,7 +611,6 @@ int isAndOr() {
 		else
 			return isWord = 2;
 	}
-
 	b_reset(sc_buf);
 	return 0;
 

@@ -38,6 +38,7 @@
 #define ER  12 /* Error state  with retract */
 #define IS -1    /* Inavalid state */
 
+
 /* State transition table definition */
 
 #define TABLE_COLUMNS 8

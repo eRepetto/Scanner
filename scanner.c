@@ -399,22 +399,31 @@ Token aa_func03(char lexeme[]) {
 Token aa_func08(char lexeme[]) {
 
 	Token t;
+	
+	double num = atof(lexeme);
+	int i = 0;
 
-	/*THE FUNCTION MUST CONVERT THE LEXEME TO A FLOATING POINT VALUE,
-	WHICH IS THE ATTRIBUTE FOR THE TOKEN.
-	THE VALUE MUST BE IN THE SAME RANGE AS the value of 4 - byte float in C.
-	IN CASE OF ERROR(OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
-	THE ERROR TOKEN ATTRIBUTE IS  lexeme.IF THE ERROR lexeme IS LONGER
-	than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
-	STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
-	err_lex C - type string.
-	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
-	return t;*/
+	if (num <= FLT_MAX  && num >= FLT_MIN  || num == 0)  {
+		t.code = FPL_T;
+		t.attribute.flt_value = (float) num;
+	}
 
-	float num = (float) atof(lexeme);
-	t.code = FPL_T;
-	t.attribute.flt_value = num;
+	else {
 
+		if (strlen(lexeme) > ERR_LEN) {
+			for (i = 0; i < ERR_LEN - 3; i++)
+				t.attribute.err_lex[i] = lexeme[i];
+			for (; i < ERR_LEN; i++)
+				t.attribute.err_lex[i] = '.';
+			t.attribute.err_lex[i] = '\0';
+		}
+		else {
+			for (i = 0; i < strlen(lexeme); i++)
+				t.attribute.err_lex[i] = lexeme[i];
+			t.attribute.err_lex[i] = '\0';
+		}
+		t.code = ERR_T;
+	}
 	return t;
 
 }
@@ -428,20 +437,31 @@ Token aa_func05(char lexeme[]) {
 
 	Token t;
 	long num = atol(lexeme);
-	t.code = INL_T;
-	t.attribute.int_value = num;
+	int i = 0;
+
+	if (num <= SHRT_MAX && num >= SHRT_MIN) {
+		t.code = INL_T;
+		t.attribute.int_value = (short)num;
+	}
+
+	else {
+
+		if (strlen(lexeme) > ERR_LEN) {
+			for (i = 0; i < ERR_LEN - 3; i++)
+				t.attribute.err_lex[i] = lexeme[i];
+			for (; i < ERR_LEN; i++)
+				t.attribute.err_lex[i] = '.';
+			t.attribute.err_lex[i] = '\0';
+		}
+		else {
+			for (i = 0; i < strlen(lexeme); i++)
+				t.attribute.err_lex[i] = lexeme[i];
+			t.attribute.err_lex[i] = '\0';
+		}
+		t.code = ERR_T;
+	}
 	return t;
 
-	/*THE FUNCTION MUST CONVERT THE LEXEME REPRESENTING A DECIMAL CONSTANT
-	TO A DECIMAL INTEGER VALUE, WHICH IS THE ATTRIBUTE FOR THE TOKEN.
-	THE VALUE MUST BE IN THE SAME RANGE AS the value of 2 - byte integer in C.
-	IN CASE OF ERROR(OUT OF RANGE) THE FUNCTION MUST RETURN ERROR TOKEN
-	THE ERROR TOKEN ATTRIBUTE IS  lexeme.IF THE ERROR lexeme IS LONGER
-	than ERR_LEN characters, ONLY THE FIRST ERR_LEN - 3 characters ARE
-	STORED IN err_lex.THEN THREE DOTS ... ARE ADDED TO THE END OF THE
-	err_lex C - type string.
-	BEFORE RETURNING THE FUNCTION MUST SET THE APROPRIATE TOKEN CODE
-	return t;*/
 }
 
 /*

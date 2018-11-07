@@ -42,17 +42,17 @@ extern Buffer * str_LTBL; /*String literal table */
 int line; /* current line number of the source code */
 extern int scerrnum;     /* defined in platy_st.c - run-time error number */
 
-						 /* Local(file) global objects - variables */
+/* Local(file) global objects - variables */
 static Buffer *lex_buf;/*pointer to temporary lexeme buffer*/
 static pBuffer sc_buf; /*pointer to input source buffer*/
-					   /* No other global variable declarations/definitiond are allowed */
+					   /* No other global variable declarations/definitions are allowed */
 
 					   /* scanner.c static(local) function  prototypes */
 static int char_class(char c); /* character class function */
 static int get_next_state(int, char, int *); /* state machine function */
-static int iskeyword(char * kw_lexeme); /*keywords lookup functuion */
+static int iskeyword(char * kw_lexeme); /*keywords lookup function */
 static int isAndOr();
-
+static Token generateErrorToken();
 
 /*Initializes scanner */
 int scanner_init(Buffer * psc_buf) {
@@ -71,10 +71,17 @@ int scanner_init(Buffer * psc_buf) {
 *	when a lexeme matches with a token pattern. 
 * Author: Gabriel Richard, 040-880-482; Exequiel Repetto, 040-885-774
 * History/Versions: 1.0
-* Called functions: b_getc(), b_retract(), isAndOr(), b_mark(), b_getcoffset(), get_next_state(), b_allocate(), b_reset(),b_addc(), b_free()
+* Called functions: b_getc(), b_retract(), isAndOr(), b_mark(), b_getcoffset(),
+*	get_next_state(), b_allocate(), b_reset(),b_addc(), b_free()
 * Parameters: void
-* Return value: Returns a token
-* Algorithm: 
+* Return value: Returns an error token if it finds an illegal symbol; else a
+*	run-time error token if there is a run-time error; else a token matching 
+*	the lexeme found in the buffer. 
+* Algorithm: A character is retrieved from the source buffer. The character is 
+*	compared against simple token patterns first. If there is no match, a
+*	transition table is then used to determine if there is a lexical match with
+*	variable identifiers, integer literals, floating-point literals and string
+*	literals. 
 */
 Token malar_next_token(void)
 {
@@ -84,13 +91,16 @@ Token malar_next_token(void)
 	short lexstart = 0;  /*start offset of a lexeme in the input char buffer (array) */
 	short lexend = 0;    /*end   offset of a lexeme in the input char buffer (array)*/
 	int accept = NOAS; /* type of state - initially not accepting */
-	int temp = 0; /*used to store temporary integers*/
+	int isRelationalOperator = 0; /* used to store temporary result of isAndOr function */
 
 	while (1) { /* endless loop broken by token returns it will generate a warning */
 
+		if (!sc_buf)
+			return generateErrorToken();
 		/* Get the next symbol from the buffer */
 		c = b_getc(sc_buf);
 
+		/* Compare character for token match */
 		switch (c) {
 
 		case '\0':
@@ -191,13 +201,17 @@ Token malar_next_token(void)
 			return t;
 			/* Logical operators */
 		case '.':
-			temp = isAndOr(); /* if function return 1 is .AND. if return 2 is .OR.*/
-			if (temp) {
+			isRelationalOperator = isAndOr(); 
+			/* Check if isAndOr was successful */
+			if (isRelationalOperator == RT_FAIL_1)
+				return generateErrorToken();
+			/* if function return 1 is .AND. if return 2 is .OR.*/
+			if (isRelationalOperator) {
 				/*lexeme is .AND.*/
-				if (temp == 1)
+				if (isRelationalOperator == 1)
 					t.attribute.log_op = AND;
 				/*lexeme is .OR.*/
-				else if (temp == 2)
+				else if (isRelationalOperator == 2)
 					t.attribute.log_op = OR;
 
 				t.code = LOG_OP_T;
@@ -207,37 +221,59 @@ Token malar_next_token(void)
 
 		/* Part 2: Implementation of Finite State Machine (DFA)*/
 		lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
+		/* Check for run-time error */
+		if (lexstart == RT_FAIL_1) {
+			return generateErrorToken();
+		}
 		short capacity;
 
 		while (accept == NOAS) {
 			state = get_next_state(state, c, &accept);
-			if (accept == ASWR || accept == ASNR)
+			/* Check if get_next_state was successful */
+			if (state == RT_FAIL_1) 
+				return generateErrorToken();
+			
+			if (accept == ASWR || accept == ASNR) 
 				break;
+			
 			c = b_getc(sc_buf);
 		}
-		if (accept == ASWR)
-			b_retract(sc_buf);
+
+		if (accept == ASWR) {
+			/* Check for run-time error */
+			if (b_retract(sc_buf) == RT_FAIL_1) 
+				return generateErrorToken();
+		}
 
 		lexend = b_getcoffset(sc_buf);
+		/* Check if b_getcoffset was successful */
+		if (lexend == RT_FAIL_1) 
+			return generateErrorToken();
+
 		capacity = lexend - lexstart;
 
+		/* Check if memory allocation was successful */
 		lex_buf = b_allocate(capacity + 1, 0, 'f');
+		if (!lex_buf) 
+			return generateErrorToken();
 
-		/*retract getc_offset to the mark set previously*/
-		b_reset(sc_buf);
+		/*retract getc_offset to the mark set previously 
+		 and check for run-time error*/
+		if ((b_reset(sc_buf)) == RT_FAIL_1)
+			return generateErrorToken();
+
 		for (int i = lexstart; i < lexend; i++) {
 			c = b_getc(sc_buf);
-			b_addc(lex_buf, c);
+			if (!b_addc(lex_buf, c))
+				return generateErrorToken();
 		}
-
 		b_addc(lex_buf, '\0');
-		t = aa_table[state](b_location(lex_buf, 0));
 
+		t = aa_table[state](b_location(lex_buf, 0));
 		b_free(lex_buf);
 		return t;
-
-	} //end while(1)
-} // end malar_next_token
+	} /* end while(1) */
+} /* end malar_next_token */
 
 
 /*
@@ -251,6 +287,10 @@ Token malar_next_token(void)
 */
 int get_next_state(int state, char c, int *accept)
 {
+	/* If accept is null pointer return -1 */
+	if (!accept) 
+		return RT_FAIL_1;
+	
 	int col;
 	int next;
 	col = char_class(c);
@@ -319,10 +359,16 @@ ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AV
 */
 
 Token aa_func02(char lexeme[]) {
+	/* If lexeme is null return run-time error token */
+	if (!lexeme)
+		return generateErrorToken();
 
 	Token t;
 
 	int temp = iskeyword(lexeme);
+	/* Check if iskeyword was successful */
+	if (temp == RT_FAIL_2)
+		return generateErrorToken();
 
 	if (temp != -1) {
 		t.code = KW_T;
@@ -364,20 +410,19 @@ Token aa_func02(char lexeme[]) {
 */
 
 Token aa_func03(char lexeme[]) {
+	/* If lexeme is null return run-time error token */
+	if (!lexeme)
+		return generateErrorToken();
+
 	Token t;
 	t.code = SVID_T;
 
-	/* 
-	 * Only store first 7 characters in token if lexeme is longer then 8 
-	 * characters. 
-	 */
+	/* Only store first 7 characters in token if lexeme is longer then 8 
+	 characters */
 	if (strlen(lexeme) > VID_LEN) {
 		for (int i = 0; i < VID_LEN; ++i) {
-
-			/* 
-			 * '$' followed by null terminator ('\0') is appended to the
-			 * end of SVID. 
-			 */
+			/* '$' followed by null terminator ('\0') is appended to the
+			 end of SVID. */
 			if (i == VID_LEN - 1) {
 				t.attribute.vid_lex[i] = '$';
 				t.attribute.vid_lex[i + 1] = '\0';
@@ -388,9 +433,8 @@ Token aa_func03(char lexeme[]) {
 	}
 	else {
 		/* Store lexeme in token */
-		for (int i = 0; i < strlen(lexeme); i++)
+		for (size_t i = 0; i < strlen(lexeme); i++)
 			t.attribute.vid_lex[i] = lexeme[i];
-
 		/* Append with null terminator to create c-style string */
 		t.attribute.vid_lex[strlen(lexeme)] = '\0';
 	}
@@ -411,6 +455,9 @@ Token aa_func03(char lexeme[]) {
 */
 
 Token aa_func08(char lexeme[]) {
+	/* If lexeme is null return run-time error token */
+	if (!lexeme)
+		return generateErrorToken();
 
 	Token t;
 
@@ -454,6 +501,9 @@ Token aa_func08(char lexeme[]) {
 *Algorithm:
 */
 Token aa_func05(char lexeme[]) {
+	/* If lexeme is null return run-time error token */
+	if (!lexeme)
+		return generateErrorToken();
 
 	Token t;
 	long num = atol(lexeme);
@@ -497,23 +547,31 @@ Token aa_func05(char lexeme[]) {
 */
 
 Token aa_func10(char lexeme[]) {
+	/* If lexeme is null return run-time error token */
+	if (!lexeme || !str_LTBL)
+		return generateErrorToken();
+
 	Token t;
+	short offset = b_limit(str_LTBL);
+	/* Check if b_limit returned a valid value */
+	if (offset == RT_FAIL_1)
+		return generateErrorToken();
 	/* Set token string offset to location of last inserted character */
-	t.attribute.str_offset = b_limit(str_LTBL);
+	t.attribute.str_offset = offset;
 
 	/* Add characters inside quotation marks to string literal table */
 	for (size_t i = 1; i < strlen(lexeme) - 1; ++i) {
 		/* Increment the line number of the source code if line break is found */
-		if (lexeme[i] == '\n') {
+		if (lexeme[i] == '\n') 
 			++line;
-		}
 		/* Attempt to insert characters into string literal table */
-		if (!b_addc(str_LTBL, lexeme[i])) {
-			break;
-		}
+		if (!b_addc(str_LTBL, lexeme[i])) 
+			return generateErrorToken();
 	}
+	/* Attempt to insert null terminator into string literal table */
+	if (!b_addc(str_LTBL, '\0'))
+		return generateErrorToken();
 
-	b_addc(str_LTBL, '\0');
 	t.code = STR_T;
 	return t;
 }
@@ -534,34 +592,34 @@ Token aa_func10(char lexeme[]) {
 */
 
 Token aa_func12(char lexeme[]) {
+	/* If lexeme is null return run-time error token */
+	if (!lexeme)
+		return generateErrorToken();
+
 	Token t;
 	/* Place three dots at the end of the lexeme if longer than 20 characters */
 	if (strlen(lexeme) > ERR_LEN) {
-		for (int i = 17; i < 20; ++i) {
+		for (int i = 17; i < 20; ++i) 
 			lexeme[i] = '.';
-		}
 	}
 
 	/* Strings longer than 20 characters shall only show the first 17 characters
 	and append three dots (...) to the end */
 	for (size_t i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
 		/* Increment the line number of the source code if line break is found */
-		if (lexeme[i] == '\n') {
+		if (lexeme[i] == '\n') 
 			++line;
-		}
 		/* Insert null terminator at the end of lexeme */
-		else if (i == ERR_LEN || i == strlen(lexeme)) {
+		else if (i == ERR_LEN || i == strlen(lexeme)) 
 			t.attribute.err_lex[i] = '\0';
-		}
 		/* Insert lexeme character by character into token */
-		else {
+		else 
 			t.attribute.err_lex[i] = lexeme[i];
-		}
 	}
 
 	t.code = ERR_T;
 	return t;
-}
+} 
 
 /*Purpose:
 *Author: Gabriel Richard [student num], Exequiel Repetto 040885774
@@ -572,13 +630,16 @@ Token aa_func12(char lexeme[]) {
 *Algorithm:
 */
 int iskeyword(char * kw_lexeme) {
+	/* If kw_lexeme is null return -1 */
+	if (!kw_lexeme)
+		return RT_FAIL_2;
 
 	for (int i = 0; i < KWT_SIZE; i++) {
 		if (strcmp(kw_lexeme, kw_table[i]) == 0)
 			return i;
 	}
 	return -1;
-}
+} /* end iskeyword function */
 
 /*Purpose:
 *Author: Gabriel Richard, Exequiel Repetto 040885774
@@ -589,9 +650,13 @@ int iskeyword(char * kw_lexeme) {
 *Algorithm:
 */
 int isAndOr() {
-	b_mark(sc_buf, b_getcoffset(sc_buf));
+	/* Check if b_mark was successful */
+	if (b_mark(sc_buf, b_getcoffset(sc_buf)) == RT_FAIL_1)
+		return RT_FAIL_1;
+
 	unsigned char c;
 	int isWord;
+	
 	c = b_getc(sc_buf);
 
 	switch (c) {
@@ -619,7 +684,26 @@ int isAndOr() {
 		else
 			return isWord = 2;
 	}
-	b_reset(sc_buf);
+	/* Check if b_reset was successful */
+	if (b_reset(sc_buf) == RT_FAIL_1)
+		return RT_FAIL_1;
+
 	return 0;
 
-}
+} /* end isAndOr function */
+
+Token generateErrorToken() {
+	++scerrnum;
+	Token t;
+
+	char error[] = "RUN TIME ERROR: ";
+	for (size_t i = 0; i <= strlen(error); ++i) {
+		/* Insert null terminator at the end to create c-style string */
+		if (i == strlen(error)) 
+			t.attribute.err_lex[i] = '\0';
+		/* Insert string characters inside token */
+		t.attribute.err_lex[i] = error[i];
+	}
+	t.code = RTE_T;
+	return t;
+} /* end generateErrorToken function */

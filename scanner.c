@@ -6,7 +6,7 @@
 *Assignment: 2
 *Date: 2018-11-08
 *Professor: Sv. Ranev
-*Purpose: 
+*Purpose:
 *Function list:
 */
 
@@ -67,13 +67,14 @@ int scanner_init(Buffer * psc_buf) {
 }
 
 /*
-*Purpose: 
-*Author: Gabriel Richard [student num], Exequiel Repetto 040885774
-*History/Versions: 
-*Called functions: b_getc(), b_retract(), isAndOr(), b_mark(), b_getcoffset(), get_next_state(), b_allocate(), b_reset(),b_addc(), b_free()
-*Parameters: 
-*Return value: 
-*Algorithm:
+* Purpose: Reads from the buffer one character at a time and returns a token 
+*	when a lexeme matches with a token pattern. 
+* Author: Gabriel Richard, 040-880-482; Exequiel Repetto, 040-885-774
+* History/Versions: 1.0
+* Called functions: b_getc(), b_retract(), isAndOr(), b_mark(), b_getcoffset(), get_next_state(), b_allocate(), b_reset(),b_addc(), b_free()
+* Parameters: void
+* Return value: Returns a token
+* Algorithm: 
 */
 Token malar_next_token(void)
 {
@@ -87,8 +88,7 @@ Token malar_next_token(void)
 
 	while (1) { /* endless loop broken by token returns it will generate a warning */
 
-				/*	GET THE NEXT SYMBOL FROM THE INPUT BUFFER*/
-
+		/* Get the next symbol from the buffer */
 		c = b_getc(sc_buf);
 
 		switch (c) {
@@ -236,8 +236,8 @@ Token malar_next_token(void)
 		b_free(lex_buf);
 		return t;
 
-	}//end while(1)
-}
+	} //end while(1)
+} // end malar_next_token
 
 
 /*
@@ -258,7 +258,7 @@ int get_next_state(int state, char c, int *accept)
 #ifdef DEBUG
 	printf("Input symbol: %c Row: %d Column: %d Next: %d \n", c, state, col, next);
 #endif
-	
+
 	assert(next != IS);
 
 #ifdef DEBUG
@@ -274,7 +274,7 @@ int get_next_state(int state, char c, int *accept)
 
 /*
 *Purpose:
-*Author: Gabriel Richard [student num], Exequiel Repetto 040885774
+*Authors: Gabriel Richard, 040-880-482; Exequiel Repetto, 040-885-774
 *History/Versions: 1.0
 *Called functions: isalpha(), isdigit()
 *Parameters:
@@ -309,12 +309,12 @@ int char_class(char c)
 ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
 
 /*
-*Purpose: 
+*Purpose:
 *Author: Exequiel Repetto 040885774
 *History/Versions: 1.0
 *Called functions: isKeyword(), strlen()
-*Parameters: 
-*Return value: 
+*Parameters:
+*Return value:
 *Algorithm:
 */
 
@@ -349,26 +349,35 @@ Token aa_func02(char lexeme[]) {
 	return t;
 }
 
-/* ACCEPTING FUNCTION FOR THE string variable identifier(VID - SVID) */
-
 /*
-*Purpose: 
-*Author: Gabriel Richard [student num]
-*History/Versions: 1.0
-*Called functions: strlen()
-*Parameters: 
-*Return value: 
-*Algorithm:
+* Purpose: Accepting state function for string variable identifiers. Stores 
+*	SVID inside token SVID token.
+* Author: Gabriel Richard, 040-880-482
+* History/Versions: 1.0
+* Called functions: strlen()
+* Parameters: char lexeme[] - No restrictions
+* Return value: Returns a String Variable Identifier (SVID) token
+* Algorithm: If the passed lexeme is longer than 8 characters, stores the first
+*	7 characters inside token and appends '$' followed by null terminator 
+*	('\0'). If lexeme is shorter than 8 characters, stores all the characters
+*	inside token and appends with null terminator. 
 */
 
 Token aa_func03(char lexeme[]) {
 	Token t;
 	t.code = SVID_T;
-	int lenght = (strlen(lexeme));
 
-	if (lenght > VID_LEN) {
-		/* Only first vid_len - 1 characters are stored, followed by '$' and '\0' */
+	/* 
+	 * Only store first 7 characters in token if lexeme is longer then 8 
+	 * characters. 
+	 */
+	if (strlen(lexeme) > VID_LEN) {
 		for (int i = 0; i < VID_LEN; ++i) {
+
+			/* 
+			 * '$' followed by null terminator ('\0') is appended to the
+			 * end of SVID. 
+			 */
 			if (i == VID_LEN - 1) {
 				t.attribute.vid_lex[i] = '$';
 				t.attribute.vid_lex[i + 1] = '\0';
@@ -378,10 +387,12 @@ Token aa_func03(char lexeme[]) {
 		}
 	}
 	else {
-		for (int i = 0; i < lenght - 1; i++)
+		/* Store lexeme in token */
+		for (int i = 0; i < strlen(lexeme); i++)
 			t.attribute.vid_lex[i] = lexeme[i];
-		t.attribute.vid_lex[lenght - 1] = '$';
-		t.attribute.vid_lex[lenght] = '\0';
+
+		/* Append with null terminator to create c-style string */
+		t.attribute.vid_lex[strlen(lexeme)] = '\0';
 	}
 
 	return t;
@@ -390,25 +401,25 @@ Token aa_func03(char lexeme[]) {
 /*ACCEPTING FUNCTION FOR THE floating - point literal (FPL)*/
 
 /*
-*Purpose: 
+*Purpose:
 *Author: Exequiel Repetto 040885774
-*History/Versions: 1.0 
+*History/Versions: 1.0
 *Called functions: atof(), strlen()
-*Parameters: 
-*Return value: 
+*Parameters:
+*Return value:
 *Algorithm:
 */
 
 Token aa_func08(char lexeme[]) {
 
 	Token t;
-	
+
 	double num = atof(lexeme);
 	size_t i = 0;
 
-	if (num <= FLT_MAX  && num >= FLT_MIN  || num == 0)  {
+	if (num <= FLT_MAX  && num >= FLT_MIN || num == 0) {
 		t.code = FPL_T;
-		t.attribute.flt_value = (float) num;
+		t.attribute.flt_value = (float)num;
 	}
 
 	else {
@@ -434,12 +445,12 @@ Token aa_func08(char lexeme[]) {
 /*	ACCEPTING FUNCTION FOR THE integer literal(IL)-decimal constant(DIL)*/
 
 /*
-*Purpose: 
+*Purpose:
 *Author: Exequiel Repetto 040885774
 *History/Versions: 1.0
 *Called functions: atol(), strlen()
-*Parameters: 
-*Return value: 
+*Parameters:
+*Return value:
 *Algorithm:
 */
 Token aa_func05(char lexeme[]) {
@@ -473,23 +484,26 @@ Token aa_func05(char lexeme[]) {
 }
 
 /*
-* ACCEPTING FUNCTION FOR THE string literal(SL)
-*
-*Purpose: 
-*Author: Gabriel Richard [student num]
-*History/Versions: 1.0
-*Called functions: b_limit(), strlen(), b_addc()
-*Parameters: 
-*Return value: 
-*Algorithm:
+* Purpose: Accepting state function for string literals. Inserts identified 
+*	string literal inside string literal table. 
+* Author: Gabriel Richard, 040-880-482
+* History/Versions: 1.0
+* Called functions: b_limit(), strlen(), b_addc()
+* Parameters: char lexeme[] - No restrictions
+* Return value: Returns a string literal token
+* Algorithm: Loops through passed lexeme one character at a time and inserts
+*	characters inside string literal table. Does not store quotation marks inside
+*	string literal table.
 */
 
 Token aa_func10(char lexeme[]) {
 	Token t;
+	/* Set token string offset to location of last inserted character */
 	t.attribute.str_offset = b_limit(str_LTBL);
 
 	/* Add characters inside quotation marks to string literal table */
 	for (size_t i = 1; i < strlen(lexeme) - 1; ++i) {
+		/* Increment the line number of the source code if line break is found */
 		if (lexeme[i] == '\n') {
 			++line;
 		}
@@ -498,43 +512,53 @@ Token aa_func10(char lexeme[]) {
 			break;
 		}
 	}
+
 	b_addc(str_LTBL, '\0');
 	t.code = STR_T;
-
 	return t;
 }
 
 /*
-* ACCEPTING FUNCTION FOR THE ERROR TOKEN
-*
-*Purpose: 
-*Author: Gabriel Richard [student num]
-*History/Versions: 1.0
-*Called functions: strlen()
-*Parameters: 
-*Return value: 
-*Algorithm:
+* Purpose: Accepting state function for error token. Stores the lexeme 
+*	responsible for the error before returning an error token. 
+* Author: Gabriel Richard, 040-880-482
+* History/Versions: 1.1
+* Called functions: strlen()
+* Parameters: char lexeme[] - No restrictions
+* Return value: Returns an error token
+* Algorithm: Loops through the lexeme passed on character at a time up to 20 
+*	characters and stores it inside the error token. If the lexeme passed is 
+*	longer than 20 characters, only the first 17 characters are stored,  
+*	appended by three dots (...) at the end. Returns the error token once the
+*	loop is completed.
 */
 
 Token aa_func12(char lexeme[]) {
 	Token t;
+	/* Place three dots at the end of the lexeme if longer than 20 characters */
+	if (strlen(lexeme) > ERR_LEN) {
+		for (int i = 17; i < 20; ++i) {
+			lexeme[i] = '.';
+		}
+	}
 
 	/* Strings longer than 20 characters shall only show the first 17 characters
 	and append three dots (...) to the end */
-	for (int i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
+	for (size_t i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
+		/* Increment the line number of the source code if line break is found */
 		if (lexeme[i] == '\n') {
 			++line;
 		}
-		if (i == ERR_LEN || i == strlen(lexeme)) {
+		/* Insert null terminator at the end of lexeme */
+		else if (i == ERR_LEN || i == strlen(lexeme)) {
 			t.attribute.err_lex[i] = '\0';
 		}
-		else if (i >= ERR_LEN - 3) {
-			t.attribute.err_lex[i] = '.';
-		}
+		/* Insert lexeme character by character into token */
 		else {
 			t.attribute.err_lex[i] = lexeme[i];
 		}
 	}
+
 	t.code = ERR_T;
 	return t;
 }

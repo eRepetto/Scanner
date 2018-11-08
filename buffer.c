@@ -2,8 +2,8 @@
 Compiler: MS Visual Studio 2015
 Author: Exequiel Repetto, 040885774
 Course: CST 8152 – Compilers, Lab Section: 11
-Assignment: 1
-Date: 2018-10-03
+Assignment: Assignment #2
+Date: 2018-11-08
 Professor: Sv. Ranev
 Purpose: The purpose of this program is to create a buffer using dynamic structures that is able to operate in three different mode a fixed size buffer an additive self incrementing and a multiplicative self incrementing buffer
 program is going to load (read) a file and store it to the buffer, with the selected parameters and mode. buffer should not load if bad parameters are chosen.

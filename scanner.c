@@ -1,13 +1,15 @@
 /*
 *File name: scanner.c
 *Compiler: MS Visual Studio 2015
-*Author: Gabriel Richard [student number], Exequiel Repetto, 040885774
+*Author: Gabriel Richard 040-880-482, Exequiel Repetto, 0408-857-74
 *Course: CST 8152 – Compilers, Lab Section: 11
-*Assignment: 2
+*Assignment: Assignment #2
 *Date: 2018-11-08
 *Professor: Sv. Ranev
-*Purpose:
-*Function list:
+*Purpose: the purpose of this file is to create a lexical analyzer (scanner) for the platypus programming language.
+  The scanner will read a source program from a text file and produce a stream of token representation
+*Function list: scanner_init(), malar_next_token(), get_next_state(),char_class(),aa_func02(), aa_func03(), aa_func08(), aa_func05(),
+aa_func10(), aa_func12(), isKeyword(), isAndOr();
 */
 
 /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
@@ -42,17 +44,18 @@ extern Buffer * str_LTBL; /*String literal table */
 int line; /* current line number of the source code */
 extern int scerrnum;     /* defined in platy_st.c - run-time error number */
 
-/* Local(file) global objects - variables */
+						 /* Local(file) global objects - variables */
 static Buffer *lex_buf;/*pointer to temporary lexeme buffer*/
 static pBuffer sc_buf; /*pointer to input source buffer*/
-					   /* No other global variable declarations/definitions are allowed */
+					   /* No other global variable declarations/definitiond are allowed */
 
 					   /* scanner.c static(local) function  prototypes */
 static int char_class(char c); /* character class function */
 static int get_next_state(int, char, int *); /* state machine function */
 static int iskeyword(char * kw_lexeme); /*keywords lookup function */
-static int isAndOr();
-static Token generateErrorToken();
+static int isAndOr(); /*.AND., .OR. lookup function*/
+static Token generateErrorToken(); /* Run time error function*/
+
 
 /*Initializes scanner */
 int scanner_init(Buffer * psc_buf) {
@@ -67,21 +70,21 @@ int scanner_init(Buffer * psc_buf) {
 }
 
 /*
-* Purpose: Reads from the buffer one character at a time and returns a token 
-*	when a lexeme matches with a token pattern. 
+* Purpose: Reads from the buffer one character at a time and returns a token
+*	when a lexeme matches with a token pattern.
 * Author: Gabriel Richard, 040-880-482; Exequiel Repetto, 040-885-774
 * History/Versions: 1.0
 * Called functions: b_getc(), b_retract(), isAndOr(), b_mark(), b_getcoffset(),
 *	get_next_state(), b_allocate(), b_reset(),b_addc(), b_free()
 * Parameters: void
 * Return value: Returns an error token if it finds an illegal symbol; else a
-*	run-time error token if there is a run-time error; else a token matching 
-*	the lexeme found in the buffer. 
-* Algorithm: A character is retrieved from the source buffer. The character is 
+*	run-time error token if there is a run-time error; else a token matching
+*	the lexeme found in the buffer.
+* Algorithm: A character is retrieved from the source buffer. The character is
 *	compared against simple token patterns first. If there is no match, a
 *	transition table is then used to determine if there is a lexical match with
 *	variable identifiers, integer literals, floating-point literals and string
-*	literals. 
+*	literals.
 */
 Token malar_next_token(void)
 {
@@ -99,8 +102,7 @@ Token malar_next_token(void)
 			return generateErrorToken();
 		/* Get the next symbol from the buffer */
 		c = b_getc(sc_buf);
-
-		/* Compare character for token match */
+		/* Compare character to simple token patterns */
 		switch (c) {
 
 		case '\0':
@@ -119,16 +121,19 @@ Token malar_next_token(void)
 		case '!':
 			/*gets next character to see if is a comment line */
 			c = b_getc(sc_buf);
-
+			/*if c is equal to '=' is a comment line*/
 			if (c == '!') {
+				/*loop will iterate until end of line*/
 				while (c != '\n')
 					c = b_getc(sc_buf);
 				line++;
 				continue;
 			}
+			/*not comment line error token is set*/
 			else {
 				t.attribute.err_lex[0] = '!';
 				t.attribute.err_lex[1] = c;
+				/*ignores everything until the end of line*/
 				while (c != '\n')
 					c = b_getc(sc_buf);
 				line++;
@@ -154,7 +159,7 @@ Token malar_next_token(void)
 		case ';':
 			t.code = EOS_T;
 			return t;
-			/*operators*/
+			/*mathematical operators*/
 		case '+':
 			t.code = ART_OP_T;
 			t.attribute.arr_op = PLUS;
@@ -171,10 +176,13 @@ Token malar_next_token(void)
 			t.code = ART_OP_T;
 			t.attribute.arr_op = MULT;
 			return t;
+			/*relational operators*/
 		case '<':
 			c = b_getc(sc_buf);
+			/*if following character is '>' relational operator is '<>'*/
 			if (c == '>')
 				t.attribute.rel_op = NE;
+			/*it retracts back one character*/
 			else {
 				b_retract(sc_buf);
 				t.attribute.rel_op = LT;
@@ -190,10 +198,12 @@ Token malar_next_token(void)
 			return t;
 		case '=':
 			c = b_getc(sc_buf);
+			/*if following character is '=' is relational operator*/
 			if (c == '=') {
 				t.code = REL_OP_T;
 				t.attribute.rel_op = EQ;
 			}
+			/*character is an assignment operator*/
 			else {
 				b_retract(sc_buf);
 				t.code = ASS_OP_T;
@@ -201,7 +211,7 @@ Token malar_next_token(void)
 			return t;
 			/* Logical operators */
 		case '.':
-			isRelationalOperator = isAndOr(); 
+			isRelationalOperator = isAndOr();
 			/* Check if isAndOr was successful */
 			if (isRelationalOperator == RT_FAIL_1)
 				return generateErrorToken();
@@ -220,79 +230,82 @@ Token malar_next_token(void)
 		}
 
 		/* Part 2: Implementation of Finite State Machine (DFA)*/
+
 		lexstart = b_mark(sc_buf, b_getcoffset(sc_buf) - 1);
 		/* Check for run-time error */
 		if (lexstart == RT_FAIL_1) {
 			return generateErrorToken();
 		}
-		short capacity;
+		short capacity; /*variable used to store the capacity of the lex_buf*/
 
+						/*loop iterate until final state is accepting state*/
 		while (accept == NOAS) {
 			state = get_next_state(state, c, &accept);
-			/* Check if get_next_state was successful */
-			if (state == RT_FAIL_1) 
-				return generateErrorToken();
-			
-			if (accept == ASWR || accept == ASNR) 
+			/*if final state is accepting it will break the loop*/
+			if (accept == ASWR || accept == ASNR)
 				break;
-			
 			c = b_getc(sc_buf);
 		}
-
+		/*if final state is accepting state with retract*/
 		if (accept == ASWR) {
 			/* Check for run-time error */
-			if (b_retract(sc_buf) == RT_FAIL_1) 
+			if (b_retract(sc_buf) == RT_FAIL_1)
 				return generateErrorToken();
 		}
 
 		lexend = b_getcoffset(sc_buf);
 		/* Check if b_getcoffset was successful */
-		if (lexend == RT_FAIL_1) 
+		if (lexend == RT_FAIL_1)
 			return generateErrorToken();
-
 		capacity = lexend - lexstart;
 
 		/* Check if memory allocation was successful */
 		lex_buf = b_allocate(capacity + 1, 0, 'f');
-		if (!lex_buf) 
+		if (!lex_buf)
 			return generateErrorToken();
 
-		/*retract getc_offset to the mark set previously 
-		 and check for run-time error*/
+		/*retract getc_offset to the mark set previously
+		and check for run-time error*/
 		if ((b_reset(sc_buf)) == RT_FAIL_1)
 			return generateErrorToken();
 
+		/*loop will iterate adding character buffer to the new allocated lex_buf*/
 		for (int i = lexstart; i < lexend; i++) {
 			c = b_getc(sc_buf);
 			if (!b_addc(lex_buf, c))
 				return generateErrorToken();
 		}
-		b_addc(lex_buf, '\0');
 
+		b_addc(lex_buf, '\0');
 		t = aa_table[state](b_location(lex_buf, 0));
+
 		b_free(lex_buf);
 		return t;
-	} /* end while(1) */
-} /* end malar_next_token */
+
+	} //end while(1)
+} // end malar_next_token
 
 
-/*
-*Purpose:
-*Author: Sv. Ranev
-*History/Versions:
-*Called functions: char_class()
-*Parameters:
-*Return value:
-*Algorithm:
-*/
+  /*
+  *Purpose: the function is going to return the next state from the transition table
+  *Author: Sv. Ranev
+  *History/Versions:1.0
+  *Called functions: char_class()
+  *Parameters: int state - must be between 0 and 12; char c -
+  *Return value: type int - must be between 1 and 12
+  *Algorithm: function is going to get the column according to the character that has been pass as parameter,
+   the current state and the column are added as index in a 2 dimensional array, which are going to return the next state.
+	 the next state is used as an index in an array table, which is going to return 11 if is accepting state with retract 12 if is accepting state without retract
+	or return 13 if is not accepting state.
+  */
 int get_next_state(int state, char c, int *accept)
 {
+
 	/* If accept is null pointer return -1 */
-	if (!accept) 
+	if (!accept)
 		return RT_FAIL_1;
-	
-	int col;
-	int next;
+	int col; /*variable stores column number*/
+	int next; /*variable stores next state*/
 	col = char_class(c);
 	next = st_table[state][col];
 #ifdef DEBUG
@@ -302,6 +315,7 @@ int get_next_state(int state, char c, int *accept)
 	assert(next != IS);
 
 #ifdef DEBUG
+	/*if next is -1 it will print an error message and exit*/
 	if (next == IS) {
 		printf("Scanner Error: Illegal state:\n");
 		printf("Input symbol: %c Row: %d Column: %d\n", c, state, col);
@@ -313,90 +327,108 @@ int get_next_state(int state, char c, int *accept)
 }
 
 /*
-*Purpose:
+*Purpose: function is going to get the column of the transition table according the character passed to the parameter
 *Authors: Gabriel Richard, 040-880-482; Exequiel Repetto, 040-885-774
 *History/Versions: 1.0
 *Called functions: isalpha(), isdigit()
-*Parameters:
-*Return value:
-*Algorithm:
+*Parameters: type char
+*Return value: type int between 0 and 7
+*Algorithm: function runs trough if statements comparing char c with each character from the column table,
+if both character math function is going to return the specific column number, else it will return number 7
 */
 int char_class(char c)
 {
-	int column;
+	int column; /* variable stores the column number of the transition table*/
 
+				/* if c is a letter assigns 0 to column*/
 	if (isalpha(c))
 		column = 0;
+	/* if c is '0' assigns 1 to column*/
 	else if (c == '0')
 		column = 1;
+	/* if c is a digit assigns 2 to column*/
 	else if (isdigit(c))
 		column = 2;
+	/*if c is a dot ('.') assigns 3 to column*/
 	else if (c == '.')
 		column = 3;
+	/*if c is character '&' assigns 4 to column*/
 	else if (c == '$')
 		column = 4;
+	/*if c is equal to '""' assigns 5 to column*/
 	else if (c == '"')
 		column = 5;
+	/*if c is a null terminator ('\0') or 255 it assigns 6 to column*/
 	else if (c == '\0' || c == 255)
 		column = 6;
+	/*if c doesn't match any of the conditions it assigns 7 to column*/
 	else
 		column = 7;
 
 	return column;
-}
+} /*end char_class function*/
 
 /*
-ACCEPTING FUNCTION FOR THE arithmentic variable identifier AND keywords(VID - AVID / KW)
+ACCEPTING FUNCTION FOR THE arithmetic variable identifier AND keywords(VID - AVID / KW)
 
 /*
-*Purpose:
-*Author: Exequiel Repetto 040885774
+*Purpose: the purpose of the function is to identified a variable name or a keyword from the platypus language
+*Author: Exequiel Repetto 040-885-774
 *History/Versions: 1.0
 *Called functions: isKeyword(), strlen()
-*Parameters:
-*Return value:
-*Algorithm:
+*Parameters: type char
+*Return value: type Token 
+*Algorithm: function is going to call isKeyword() function with the lexeme as parameter to compare the lexeme with an array of keywords name, if lexeme is
+a keyboard function is going to return the index from the array else it will return -1, if is keyboard is going to set a token code and set the index as attribute
+if lexeme is not a keyboard is going to set it as a variable name, if lexeme is not longer than VID_LEN is going to set a token code and add the lexeme to the specific
+attribute. If lexeme is longer than VID_LEN only the number of VID_LEN characters are going to be stored
 */
 
 Token aa_func02(char lexeme[]) {
+
 	/* If lexeme is null return run-time error token */
 	if (!lexeme)
 		return generateErrorToken();
-
 	Token t;
+	int temp = iskeyword(lexeme); /*variable store the index of the array keyword*/
 
-	int temp = iskeyword(lexeme);
 	/* Check if iskeyword was successful */
 	if (temp == RT_FAIL_2)
 		return generateErrorToken();
 
+	/*if temp is not equal to -1, the lexeme is a keyword*/
 	if (temp != -1) {
 		t.code = KW_T;
 		t.attribute.kwt_idx = temp;
-		/*return t;*/
+
 	}
+	/*if lexeme is not a keyword, and is longer than VID_LEN*/
 	else if ((strlen(lexeme) > VID_LEN)) {
 		t.code = AVID_T;
-
+		/*loop is going to add each character of the lexeme to the attribute vid_lex*/
 		for (int i = 0; i < VID_LEN; i++) {
 			t.attribute.vid_lex[i] = lexeme[i];
+			/*if loop reached the end of iteration it will add a null terminator*/
 			if (i + 1 == VID_LEN)
 				t.attribute.vid_lex[i + 1] = '\0';
 		}
 	}
+	/*if lexeme is shorter than VID_LEN*/
 	else {
 		t.code = AVID_T;
+		/*loop is going to add each character of the lexeme to the attribute vid_lex*/
 		for (size_t i = 0; i < strlen(lexeme); i++) {
 			t.attribute.vid_lex[i] = lexeme[i];
+			/*if loop reached the end of iteration it will add a null terminator*/
 			if (i + 1 == strlen(lexeme))
 				t.attribute.vid_lex[i + 1] = '\0';
 		}
 	}
 	return t;
-}
+} /*end aa_func02 function*/
 
 /*
-* Purpose: Accepting state function for string variable identifiers. Stores 
+* Purpose: Accepting state function for string variable identifiers. Stores
 *	SVID inside token SVID token.
 * Author: Gabriel Richard, 040-880-482
 * History/Versions: 1.0
@@ -404,25 +436,30 @@ Token aa_func02(char lexeme[]) {
 * Parameters: char lexeme[] - No restrictions
 * Return value: Returns a String Variable Identifier (SVID) token
 * Algorithm: If the passed lexeme is longer than 8 characters, stores the first
-*	7 characters inside token and appends '$' followed by null terminator 
+*	7 characters inside token and appends '$' followed by null terminator
 *	('\0'). If lexeme is shorter than 8 characters, stores all the characters
-*	inside token and appends with null terminator. 
+*	inside token and appends with null terminator.
 */
 
 Token aa_func03(char lexeme[]) {
+
 	/* If lexeme is null return run-time error token */
 	if (!lexeme)
 		return generateErrorToken();
-
 	Token t;
 	t.code = SVID_T;
 
-	/* Only store first 7 characters in token if lexeme is longer then 8 
-	 characters */
+	/*
+	* Only store first 7 characters in token if lexeme is longer then 8
+	* characters.
+	*/
 	if (strlen(lexeme) > VID_LEN) {
 		for (int i = 0; i < VID_LEN; ++i) {
-			/* '$' followed by null terminator ('\0') is appended to the
-			 end of SVID. */
+
+			/*
+			* '$' followed by null terminator ('\0') is appended to the
+			* end of SVID.
+			*/
 			if (i == VID_LEN - 1) {
 				t.attribute.vid_lex[i] = '$';
 				t.attribute.vid_lex[i + 1] = '\0';
@@ -435,50 +472,59 @@ Token aa_func03(char lexeme[]) {
 		/* Store lexeme in token */
 		for (size_t i = 0; i < strlen(lexeme); i++)
 			t.attribute.vid_lex[i] = lexeme[i];
+
 		/* Append with null terminator to create c-style string */
 		t.attribute.vid_lex[strlen(lexeme)] = '\0';
 	}
 
 	return t;
-}
+} /*end aa_func03 function*/
 
 /*ACCEPTING FUNCTION FOR THE floating - point literal (FPL)*/
 
 /*
-*Purpose:
-*Author: Exequiel Repetto 040885774
+*Purpose: The purpose of the function is to convert the lexeme representing to a floating point value, set the specific token code and attribute
+*Author: Exequiel Repetto 040-885-774
 *History/Versions: 1.0
 *Called functions: atof(), strlen()
-*Parameters:
-*Return value:
-*Algorithm:
+*Parameters: type char, function expects to receive an array of char
+*Return value: type Token - return a floating point literal token
+*Algorithm: the lexeme is converted to a floating point value, if the value converted is not greater or less than an 4 bytes floating point
+ FPL_T token code is set and the value is store in the flt_value attribute. if value is greater or less than the accepting 4 bytes floating point,
+ an error token will be set and value is going to be store in the err_lex attribute, if the length of the number is greater than
+ ERR_LEN only the first ERR_LEN -3 characters are going to be store followed by three dots (.)
 */
 
 Token aa_func08(char lexeme[]) {
+
 	/* If lexeme is null return run-time error token */
 	if (!lexeme)
 		return generateErrorToken();
-
 	Token t;
 
-	double num = atof(lexeme);
-	size_t i = 0;
+	double num = atof(lexeme);/*variable stores the lexeme converted to float*/
+	size_t i = 0; /*used as index in loop*/
 
+				  /*checks if num is inside the range of a float*/
 	if (num <= FLT_MAX  && num >= FLT_MIN || num == 0) {
 		t.code = FPL_T;
 		t.attribute.flt_value = (float)num;
 	}
-
+	/*if num is not in the range of a floating point number*/
 	else {
-
+		/*if length of the lexeme is longer than ERR_LEN*/
 		if (strlen(lexeme) > ERR_LEN) {
+			/*loop will iterate until add ERR_LEN-3 characters*/
 			for (i = 0; i < ERR_LEN - 3; i++)
 				t.attribute.err_lex[i] = lexeme[i];
+			/*loop will add three dots ('.') at the end of the array*/
 			for (; i < ERR_LEN; i++)
 				t.attribute.err_lex[i] = '.';
 			t.attribute.err_lex[i] = '\0';
 		}
+		/*if lexeme is not longer than ERR_LEN*/
 		else {
+			/*loop is going to add the lexeme to the array attribute*/
 			for (i = 0; i < strlen(lexeme); i++)
 				t.attribute.err_lex[i] = lexeme[i];
 			t.attribute.err_lex[i] = '\0';
@@ -487,20 +533,24 @@ Token aa_func08(char lexeme[]) {
 	}
 	return t;
 
-}
+} /*end aa_func08 function*/
 
 /*	ACCEPTING FUNCTION FOR THE integer literal(IL)-decimal constant(DIL)*/
 
 /*
-*Purpose:
-*Author: Exequiel Repetto 040885774
+*Purpose: The purpose of the function is to convert the lexeme representing to a decimal constant, set the specific token code and attribute
+*Author: Exequiel Repetto 040-885-774
 *History/Versions: 1.0
 *Called functions: atol(), strlen()
-*Parameters:
-*Return value:
-*Algorithm:
+*Parameters: type char, function expects to receive an array of char
+*Return value: Type Token - return an integer literal token
+*Algorithm: the lexeme is converted to a decimal value, if the value converted is not greater or less than an 2 bytes integer
+ INL_T token is set and the value is store in the int_value attribute. if value is greater or less than the accepting 2 bytes integer,
+ an error token will be set and value is going to be store in the err_lex attribute, if the length of the number is greater than
+ ERR_LEN only the first ERR_LEN -3 characters are going to be store followed by three dots (.)
 */
 Token aa_func05(char lexeme[]) {
+
 	/* If lexeme is null return run-time error token */
 	if (!lexeme)
 		return generateErrorToken();
@@ -509,20 +559,26 @@ Token aa_func05(char lexeme[]) {
 	long num = atol(lexeme);
 	size_t i = 0;
 
+	/*check if num is in the range of a 2 byte int*/
 	if (num <= SHRT_MAX && num >= SHRT_MIN) {
 		t.code = INL_T;
 		t.attribute.int_value = (short)num;
 	}
-
+	/*if num is not in the range of a 2 bytes int*/
 	else {
+		/*if the length of the lexeme is longer than ERR_LEN*/
 		if (strlen(lexeme) > ERR_LEN) {
+			/*loop is going to add up to ERR_LEN-3 characters to the array attribute*/
 			for (i = 0; i < ERR_LEN - 3; i++)
 				t.attribute.err_lex[i] = lexeme[i];
+			/*loop will add three dots ('.') at the end of the array attribute*/
 			for (; i < ERR_LEN; i++)
 				t.attribute.err_lex[i] = '.';
 			t.attribute.err_lex[i] = '\0';
 		}
+		/*if lexeme is not longer than ERR_LEN*/
 		else {
+			/*loop is going to add the lexeme to the array attribute*/
 			for (i = 0; i < strlen(lexeme); i++)
 				t.attribute.err_lex[i] = lexeme[i];
 			t.attribute.err_lex[i] = '\0';
@@ -531,11 +587,11 @@ Token aa_func05(char lexeme[]) {
 	}
 	return t;
 
-}
+}/*end aa_func05 function*/
 
 /*
-* Purpose: Accepting state function for string literals. Inserts identified 
-*	string literal inside string literal table. 
+* Purpose: Accepting state function for string literals. Inserts identified
+*	string literal inside string literal table.
 * Author: Gabriel Richard, 040-880-482
 * History/Versions: 1.0
 * Called functions: b_limit(), strlen(), b_addc()
@@ -562,10 +618,10 @@ Token aa_func10(char lexeme[]) {
 	/* Add characters inside quotation marks to string literal table */
 	for (size_t i = 1; i < strlen(lexeme) - 1; ++i) {
 		/* Increment the line number of the source code if line break is found */
-		if (lexeme[i] == '\n') 
+		if (lexeme[i] == '\n')
 			++line;
 		/* Attempt to insert characters into string literal table */
-		if (!b_addc(str_LTBL, lexeme[i])) 
+		if (!b_addc(str_LTBL, lexeme[i]))
 			return generateErrorToken();
 	}
 	/* Attempt to insert null terminator into string literal table */
@@ -574,19 +630,19 @@ Token aa_func10(char lexeme[]) {
 
 	t.code = STR_T;
 	return t;
-}
+}/*end aa_func10 function*/
 
 /*
-* Purpose: Accepting state function for error token. Stores the lexeme 
-*	responsible for the error before returning an error token. 
+* Purpose: Accepting state function for error token. Stores the lexeme
+*	responsible for the error before returning an error token.
 * Author: Gabriel Richard, 040-880-482
 * History/Versions: 1.1
 * Called functions: strlen()
 * Parameters: char lexeme[] - No restrictions
 * Return value: Returns an error token
-* Algorithm: Loops through the lexeme passed on character at a time up to 20 
-*	characters and stores it inside the error token. If the lexeme passed is 
-*	longer than 20 characters, only the first 17 characters are stored,  
+* Algorithm: Loops through the lexeme passed on character at a time up to 20
+*	characters and stores it inside the error token. If the lexeme passed is
+*	longer than 20 characters, only the first 17 characters are stored,
 *	appended by three dots (...) at the end. Returns the error token once the
 *	loop is completed.
 */
@@ -599,98 +655,123 @@ Token aa_func12(char lexeme[]) {
 	Token t;
 	/* Place three dots at the end of the lexeme if longer than 20 characters */
 	if (strlen(lexeme) > ERR_LEN) {
-		for (int i = 17; i < 20; ++i) 
+		for (int i = 17; i < 20; ++i)
 			lexeme[i] = '.';
 	}
 
 	/* Strings longer than 20 characters shall only show the first 17 characters
 	and append three dots (...) to the end */
-	for (size_t i = 0; i <= ERR_LEN || i <= strlen(lexeme); ++i) {
+	for (size_t i = 0; i <= ERR_LEN && i <= strlen(lexeme); ++i) {
 		/* Increment the line number of the source code if line break is found */
-		if (lexeme[i] == '\n') 
+		if (lexeme[i] == '\n')
 			++line;
 		/* Insert null terminator at the end of lexeme */
-		else if (i == ERR_LEN || i == strlen(lexeme)) 
+		else if (i == ERR_LEN || i == strlen(lexeme)) {
 			t.attribute.err_lex[i] = '\0';
+			//break;
+		}
 		/* Insert lexeme character by character into token */
-		else 
+		else
 			t.attribute.err_lex[i] = lexeme[i];
 	}
 
 	t.code = ERR_T;
 	return t;
-} 
+}/*end aa_func12 function*/
 
-/*Purpose:
-*Author: Gabriel Richard [student num], Exequiel Repetto 040885774
+/*Purpose: function checks if lexeme is a keyword
+*Author: Gabriel Richard 040-880-482, Exequiel Repetto 040-885-774
 *History/Versions: 1.0
 *Called functions: strcmp()
-*Parameters:
-*Return value:
-*Algorithm:
+*Parameters: type char array of character
+*Return value: type int - between -1 and 10
+*Algorithm: function runs trough a loop comparing the lexeme with an array of keywords, if lexeme is keyword is going to return
+  the index to the array, else it will return -1
 */
 int iskeyword(char * kw_lexeme) {
+
 	/* If kw_lexeme is null return -1 */
 	if (!kw_lexeme)
 		return RT_FAIL_2;
 
+	/*loop will iterate to find keyword*/
 	for (int i = 0; i < KWT_SIZE; i++) {
+		/*if keyword is found it will return the index*/
 		if (strcmp(kw_lexeme, kw_table[i]) == 0)
 			return i;
 	}
 	return -1;
-} /* end iskeyword function */
+}/* end iskeyword function */
 
-/*Purpose:
-*Author: Gabriel Richard, Exequiel Repetto 040885774
+/*Purpose: the purpose of the function is to identified logical operators .AND. & .OR.
+*Author: Gabriel Richard 040-880-482, Exequiel Repetto 040-885-774
 *History/Versions: 1.0
 *Called functions: b_mark, b_getcoffset(), b_getc(), b_reset()
-*Parameters:
-*Return value:
-*Algorithm:
+*Parameters: none
+*Return value: type int - between -1 and 2
+*Algorithm: Function is going to set a mark at the current position in the buffer, switch statement is going to run with only 2 cases 'A' or 'O' getting a new character every time
+ the following character is the right character, if any of the characters is not the right one, functions is going to reset the getc_offset to the value of the mark
+ set at the bigging of the function
 */
 int isAndOr() {
+
 	/* Check if b_mark was successful */
 	if (b_mark(sc_buf, b_getcoffset(sc_buf)) == RT_FAIL_1)
 		return RT_FAIL_1;
 
-	unsigned char c;
-	int isWord;
-	
+	unsigned char c; /*variable used to store character buffer*/
+	int isWord = 0; /*variable stores the return number of the function*/
+
 	c = b_getc(sc_buf);
 
 	switch (c) {
 
 	case 'A':
 		c = b_getc(sc_buf);
+		/*if c is not equal to 'N' it will break from switch statement*/
 		if (c != 'N')
 			break;
 		c = b_getc(sc_buf);
+		/*if c is not equal to 'D' it will break from switch statement*/
 		if (c != 'D')
 			break;
 		c = b_getc(sc_buf);
+		/*if c is not equal to '.' it will break from switch statement*/
 		if (c != '.')
 			break;
+		/*lexeme is a logical operator*/
 		else
 			return isWord = 1;
 
 	case 'O':
 		c = b_getc(sc_buf);
+		/*if c is not equal to 'R' it will break from switch statement*/
 		if (c != 'R')
 			break;
 		c = b_getc(sc_buf);
+		/*if c is not equal to '.' it will break from switch statement*/
 		if (c != '.')
 			break;
+		/*lexeme is a logical operator*/
 		else
 			return isWord = 2;
 	}
 	/* Check if b_reset was successful */
 	if (b_reset(sc_buf) == RT_FAIL_1)
 		return RT_FAIL_1;
+	return isWord;
 
-	return 0;
+}/* end isAndOr function */
 
-} /* end isAndOr function */
+/*Purpose: the purpose of the function is to generate an error token when a run time error is found
+*Author: Gabriel Richard 040-880-482
+*History/Versions: 1.0
+*Called functions: strlen()
+*Parameters: none
+*Return value: type Token return a run time error token
+*Algorithm: Function is going to increment scerrnum by one, declares an initializes an array of char with the message "RUN TIME ERROR:", message is added to the
+ attribute err_lex ending by a null terminator and sets the run time error token
+*/
 
 Token generateErrorToken() {
 	++scerrnum;
@@ -699,7 +780,7 @@ Token generateErrorToken() {
 	char error[] = "RUN TIME ERROR: ";
 	for (size_t i = 0; i <= strlen(error); ++i) {
 		/* Insert null terminator at the end to create c-style string */
-		if (i == strlen(error)) 
+		if (i == strlen(error))
 			t.attribute.err_lex[i] = '\0';
 		/* Insert string characters inside token */
 		t.attribute.err_lex[i] = error[i];

@@ -2,8 +2,8 @@
 Compiler : MS Visual Studio 2015
 Author : Exequiel Repetto
 Course : CST 8152 – Compilers, Lab Section :  11
-Assignment : 1
-Date : 2018-10-03
+Assignment : Assignment #2
+Date : 2018-11-08
 Professor : Sv.Ranev
 Purpose : the purpose of this file is to define and declare functions used in buffer.c file
 Function list: b_allocate(), b_addc(), b_clear(),b_free(),b_isfull(), b_limit(), b_capacity(), b_mark(), b_mode(), b_incfactor(), b_load(), b_isempty(), b_getc(), b_eob(),

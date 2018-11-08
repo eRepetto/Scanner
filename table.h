@@ -1,13 +1,13 @@
 /*
 *File name: table.h
 *Compiler: MS Visual Studio 2015
-*Author: Gabriel Richard [student number], Exequiel Repetto, 040885774
+*Author: Gabriel Richard 040-880-482, Exequiel Repetto, 040885774
 *Course: CST 8152 – Compilers, Lab Section: 11
-*Assignment: 2
+*Assignment: Assignment #2
 *Date: 2018-11-08
 *Professor: Sv. Ranev
-*Purpose:
-*Function list:
+*Purpose: the purpose of this file is to define and declare functions used in scanner.c file
+*Function list: aa_func02, Token aa_func03, Token aa_func05, Token aa_func08, Token aa_func10, Token aa_func12
 */
 
 #ifndef  TABLE_H_
